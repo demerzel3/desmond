@@ -1,0 +1,28 @@
+{
+  "name": "desmond",
+  "version": "0.0.0",
+  "homepage": "https://github.com/demerzel3/desmond",
+  "authors": [
+    "Gabriele Genta <gabriele.genta@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.8",
+    "jquery": "~2.1.3",
+    "bootstrap": "~3.3.1",
+    "fontawesome": "~4.2.0",
+    "angular-layout": "~0.1.0",
+    "lodash": "~2.4.1",
+    "ng-file-upload": "~2.0.5",
+    "pdfjs-bower": "~1.0.233",
+    "moment": "~2.8.4"
+  }
+}

@@ -1,0 +1,32 @@
+## RESTHeart configuration file.
+---
+#### listeners
+
+# Listeners allow to specify the protocol, ip, port and to use.
+# The supported protocols are: http, https and ajp. You can setup a listener per protocol (up to 3).
+
+# WARNING: RESTHeart uses basic authentication; user-names and passwords are sent over the net on each request.
+# Using the http listener is not secure: users credentials can be sniffed by a man-in-the-middle attack.
+# Use the http listener only on trusted environments.
+
+https-listener: false
+https-host: 0.0.0.0
+https-port: 4443
+
+http-listener: true
+http-host: 0.0.0.0
+http-port: 8123
+
+ajp-listener: false
+ajp-host: 0.0.0.0
+ajp-port: 8009
+
+idm:    
+    implementation-class: com.softinstigate.restheart.security.impl.SimpleFileIdentityManager
+    conf-file: ../etc/security.yml
+access-manager:    
+    implementation-class: com.softinstigate.restheart.security.impl.SimpleAccessManager
+    conf-file: ../etc/security.yml
+
+enable-log-console: true
+log-level: info

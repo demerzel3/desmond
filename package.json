@@ -1,0 +1,24 @@
+{
+  "name": "desmond",
+  "version": "1.0.0",
+  "description": "desmond =======",
+  "main": "client/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/demerzel3/desmond.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/demerzel3/desmond/issues"
+  },
+  "homepage": "https://github.com/demerzel3/desmond",
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-stylus": "^1.3.4",
+    "nib": "^1.0.4"
+  }
+}

@@ -1,0 +1,12 @@
+.drop-box {
+  padding: 20px;
+  border: dashed 1px #ccc;
+}
+.drop-box.dragover {
+  border-style: solid;
+  background-color: #adff2f;
+}
+.drop-box.dragover-err {
+  border-style: solid;
+  background-color: #f00;
+}

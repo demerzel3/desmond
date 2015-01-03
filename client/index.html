@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>Desmond</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link href="components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="components/fontawesome/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="components/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
+  <link href="components/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
+  <link href="css/main.css" rel="stylesheet"/>
+</head>
+<body vbox ng-app="Desmond" ng-controller="MainController as ctrl">
+
+  <div ng-file-drop ng-model="ctrl.files" class="drop-box"
+      drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+      multiple="false" allow-dir="false" accept="application/pdf">
+      Trascina qui l'estratto conto IWBank
+  </div>
+  <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>
+
+  <script src="components/moment/min/moment-with-locales.min.js"></script>
+  <script src="components/jquery/dist/jquery.min.js"></script>
+  <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="components/lodash/dist/lodash.min.js"></script>
+  <script src="components/pdfjs-bower/dist/pdf.js"></script>
+  <script src="components/angular/angular.min.js"></script>
+  <script src="components/angular-layout/dist/angular-layout.min.js"></script>
+  <script src="components/ng-file-upload/angular-file-upload.min.js"></script>
+  <script src="app/app.js"></script>
+</body>
+</html>
