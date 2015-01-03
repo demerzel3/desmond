@@ -1,15 +1,35 @@
 (function($, angular) {
 
+  var IWBANK_ACCOUNT_ID = '54a6f6a30364252c133e6c94';
+
+  var parseItalianFloat = function(value) {
+    value = value.replace(/\./g, '');
+    value = value.replace(/,/g, '.');
+    return parseFloat(value);
+  };
+
+  var Movement = function() {
+    this.accountId = null;
+    this.date = moment();
+    this.bankId = null;
+    this.description = null;
+    this.amount = 0;
+    this.categoryId = null;
+  };
+
   var MainController = function($scope, $q) {
     this.$q = $q;
     this.files = [];
+    this.movements = [];
 
     var ctrl = this;
     $scope.$watch('ctrl.files', function(files, oldValue) {
       if (files === oldValue) {
         return;
       }
-      ctrl.importFile(files[0]);
+      _.each(files, function(file) {
+        ctrl.importFile(file);
+      });
     });
   };
   MainController.$inject = ['$scope', '$q'];
@@ -54,11 +74,15 @@
         return list.concat(pageStrings);
       }, []);
     }).then(function(strings) {
-      ctrl.importIWBank(strings);
+      return ctrl.parseIWBank(strings);
+    }).then(function(movements) {
+      ctrl.movements = _.sortBy([].concat(ctrl.movements, movements), function(movement) {
+        return movement.date.toISOString();
+      });
     });
   };
 
-  MainController.prototype.importIWBank = function(strings) {
+  MainController.prototype.parseIWBank = function(strings) {
     var datePattern = [/^ESTRATTO AL ([0-9]{2}\/[0-9]{2}\/[0-9]{4})$/];
     var startPattern = ["DATA", "VALUTA", "DARE", "AVERE", "DESCRIZIONE", "N. OPERAZIONE"];
     var recordPattern = [
@@ -84,10 +108,12 @@
       return;
     }
     var dateString = dateRecord[0].match(datePattern[0])[1];
-    console.log("document date:", moment(dateString, "DD/MM/YYYY"));
+    var documentDate = moment(dateString, 'DD/MM/YYYY');
+    console.log("document date:", documentDate.format());
 
-
-    this.readRecord(strings, startPattern);
+    if (!this.readRecord(strings, startPattern)) {
+      return;
+    }
 
     var records = [];
     var record = this.readRecord(strings, recordPattern, continuationRecordPattern);
@@ -97,13 +123,16 @@
       record = this.readRecord(strings, recordPattern, continuationRecordPattern);
     }
 
-    _.each(records, function(record) {
-
-      var date = record[0];
-
+    // convert records to movements
+    return _.map(records, function(record) {
+      var movement = new Movement();
+      movement.bankId = record[5];
+      movement.date = moment(record[0], 'DD/MM', 'it');
+      movement.date.year(documentDate.year());
+      movement.description = record[4];
+      movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
+      return movement;
     });
-
-    console.log("records found:", records.length);
   };
 
   /**
@@ -182,7 +211,7 @@
     return record;
   };
 
-  var Desmond = angular.module('Desmond', ['angular.layout', 'angularFileUpload']);
+  var Desmond = angular.module('Desmond', ['ngSanitize', 'angular.layout', 'angularFileUpload', 'nl2br']);
   Desmond.controller('MainController', MainController);
 
 })(window.jQuery, window.angular);

@@ -10,3 +10,6 @@
   border-style: solid;
   background-color: #f00;
 }
+img.account {
+  border-radius: 16px;
+}
