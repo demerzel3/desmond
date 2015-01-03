@@ -17,12 +17,24 @@
     this.categoryId = null;
   };
 
-  var MainController = function($scope, $q) {
+  var MainController = function($scope, $q, Restangular) {
     this.$q = $q;
     this.files = [];
+    this.accounts = [];
+    this.categories = [];
     this.movements = [];
-
     var ctrl = this;
+
+    // read all accounts
+    Restangular.all('accounts').getList().then(function(accounts) {
+      ctrl.accounts = accounts;
+    });
+
+    // read all categories
+    Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
+      ctrl.categories = categories;
+    });
+
     $scope.$watch('ctrl.files', function(files, oldValue) {
       if (files === oldValue) {
         return;
@@ -32,7 +44,7 @@
       });
     });
   };
-  MainController.$inject = ['$scope', '$q'];
+  MainController.$inject = ['$scope', '$q', 'Restangular'];
 
   MainController.prototype.importFile = function(file) {
     var ctrl = this;
@@ -211,7 +223,23 @@
     return record;
   };
 
-  var Desmond = angular.module('Desmond', ['ngSanitize', 'angular.layout', 'angularFileUpload', 'nl2br']);
+  var Desmond = angular.module('Desmond', ['ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br']);
+
+  Desmond.config(['RestangularProvider', function(RestangularProvider) {
+    console.log("Configuring restangular!");
+    RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');
+    RestangularProvider.setRestangularFields({id: '_id'});
+
+    // extract data from the list response of restheart
+    RestangularProvider.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
+      if (operation === "getList") {
+        return data['_embedded']['rh:doc'];
+      } else {
+        return data;
+      }
+    });
+  }]);
+
   Desmond.controller('MainController', MainController);
 
 })(window.jQuery, window.angular);
