@@ -39,8 +39,16 @@
         <tr ng-repeat="movement in ctrl.movements">
           <td><img class="account" src="images/iwbank.png" width="32" height="32"/></td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
-          <td ng-bind-html="movement.description|nl2br"></td>
-          <td>{{movement.category}}</td>
+          <td>
+            <span ng-bind-html="movement.description|nl2br"></span>
+            <div ng-if="movement.replaceable" ng-file-drop ng-model="movement.replaceable.files" class="drop-box"
+                 ng-file-change="ctrl.loadReplaceable(movement, $files)"
+                 drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+                 multiple="false" allow-dir="false" accept="application/pdf">
+              {{movement.replaceable.info}}
+            </div>
+          </td>
+          <td>{{movement.category.name}}</td>
           <td class="text-right">{{movement.amount | number:2}} €</td>
         </tr>
       </table>
@@ -59,6 +67,9 @@
   <script src="components/angular-nl2br/angular-nl2br.min.js"></script>
   <script src="components/restangular/dist/restangular.min.js"></script>
   <script src="app/model.js"></script>
+  <script src="app/service.js"></script>
+  <script src="app/rules.js"></script>
+  <script src="app/reader.js"></script>
   <script src="app/app.js"></script>
 </body>
 </html>

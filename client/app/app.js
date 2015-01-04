@@ -2,23 +2,10 @@
 
   var IWBANK_ACCOUNT_ID = '54a6f6a30364252c133e6c94';
 
-  var parseItalianFloat = function(value) {
-    value = value.replace(/\./g, '');
-    value = value.replace(/,/g, '.');
-    return parseFloat(value);
-  };
-
-  var Movement = function() {
-    this.accountId = null;
-    this.date = moment();
-    this.bankId = null;
-    this.description = null;
-    this.amount = 0;
-    this.categoryId = null;
-  };
-
-  var MainController = function($scope, $q, Restangular) {
+  var MainController = function($scope, $q, $injector, Restangular, RulesContainer) {
     this.$q = $q;
+    this.$injector = $injector;
+    this.RulesContainer = RulesContainer;
     this.files = [];
     this.accounts = [];
     this.categories = [];
@@ -32,7 +19,12 @@
 
     // read all categories
     Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
-      ctrl.categories = categories;
+      // index categories by id
+      var catById = {};
+      _.each(categories, function(category) {
+        catById[category._id] = category;
+      });
+      ctrl.categories = catById;
     });
 
     $scope.$watch('ctrl.files', function(files, oldValue) {
@@ -40,13 +32,25 @@
         return;
       }
       _.each(files, function(file) {
-        ctrl.importFile(file);
+        ctrl.importFile(file, 'IWBankEstrattoContoReader');
       });
     });
   };
-  MainController.$inject = ['$scope', '$q', 'Restangular'];
+  MainController.$inject = ['$scope', '$q', '$injector', 'Restangular', 'RulesContainer'];
 
-  MainController.prototype.importFile = function(file) {
+  MainController.prototype.importFile = function(file, handlerName) {
+    var RulesContainer = this.RulesContainer;
+    var handler = this.$injector.get(handlerName);
+    var ctrl = this;
+    handler.read(file).then(function(movements) {
+      _.each(movements, function(movement) {
+        RulesContainer.applyAll(movement);
+      });
+      ctrl.movements = _.sortBy([].concat(ctrl.movements, movements), function(movement) {
+        return movement.date.toISOString();
+      });
+    });
+    /*
     var ctrl = this;
     var $q = this.$q;
     var readData = $q(function(resolve, reject) {
@@ -92,6 +96,7 @@
         return movement.date.toISOString();
       });
     });
+    */
   };
 
   MainController.prototype.parseIWBank = function(strings) {
@@ -136,6 +141,7 @@
     }
 
     // convert records to movements
+    var RulesContainer = this.RulesContainer;
     return _.map(records, function(record) {
       var movement = new Movement();
       movement.bankId = record[5];
@@ -143,87 +149,15 @@
       movement.date.year(documentDate.year());
       movement.description = record[4];
       movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
+      RulesContainer.applyAll(movement);
       return movement;
     });
   };
 
-  /**
-   * Looks for the specified pattern (array of strings or regular expressions) in the data (array of strings),
-   * if something is found, a new array is returned containing the match, and all the data preceding and including
-   * the match gets removed from the array.
-   * If nothing is found, null is returned and the array is not touched.
-   *
-   * @param data
-   * @param recordPattern
-   * @param [continuationPattern]
-   */
-  MainController.prototype.readRecord = function(data, recordPattern, continuationPattern) {
-    // match the record pattern
-    var matching = 0;
-    var matchIndex = -1;
-    _.each(data, function(string, index) {
-      if (string.match(recordPattern[matching])) {
-        matching++;
-      } else {
-        matching = 0;
-      }
-      if (matching === recordPattern.length) {
-        matchIndex = index - recordPattern.length + 1;
-        return false;
-      }
-    });
-
-    if (matchIndex == -1) {
-      return null;
-    }
-
-    data.splice(0, matchIndex);
-    var record = _.map(data.splice(0, recordPattern.length), function(string) {
-      return string.trim();
-    });
-    //var result = [record];
-
-    if (!continuationPattern) {
-      return record;
-    }
-
-    // try to match the continuation pattern
-    while (true) {
-      var contMatching = 0;
-      _.each(data, function(string, index) {
-        var pattern = continuationPattern[contMatching];
-        if (!pattern || string.match(pattern)) {
-          contMatching++;
-        } else {
-          return false;
-        }
-        if (contMatching === continuationPattern.length) {
-          return false;
-        }
-      });
-      if (contMatching < continuationPattern.length) {
-        break;
-      }
-      // apply continuation
-      var continuation = data.splice(0, continuationPattern.length);
-      record = _.map(record, function(recordValue, index) {
-        var contValue = continuation[index];
-        if (!contValue) {
-          return recordValue;
-        }
-        contValue = contValue.trim();
-        if (contValue.length > 0) {
-          return recordValue+'\n'+contValue;
-        } else {
-          return recordValue;
-        }
-      });
-      //result.push(continuation);
-    }
-    return record;
-  };
-
-  var Desmond = angular.module('Desmond', ['ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br']);
+  var Desmond = angular.module('Desmond', [
+    'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
+    'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model'
+  ]);
 
   Desmond.config(['RestangularProvider', function(RestangularProvider) {
     console.log("Configuring restangular!");
