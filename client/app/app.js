@@ -22,7 +22,12 @@
         return;
       }
       _.each(files, function(file) {
-        ctrl.importFile(file, 'IWBankEstrattoContoReader');
+        console.log(file);
+        if (file.type == 'application/pdf') {
+          ctrl.importFile(file, 'IWBankEstrattoContoReader');
+        } else {
+          ctrl.importFile(file, 'IWBankListaMovimentiReader');
+        }
       });
     });
   };

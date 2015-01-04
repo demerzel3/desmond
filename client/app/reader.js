@@ -23,12 +23,13 @@
    */
   var ImportedDocument = function(documentType, date, total, movements, metadata) {
     this.documentType = documentType;
-    this.date = date;
-    this.total = total;
-    this.movements = movements;
-    this.metadata = metadata;
+    this.date = date || moment;
+    this.total = total || 0;
+    this.movements = movements || [];
+    this.metadata = metadata || {};
   };
   ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
+  ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
   ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
 
 
@@ -162,6 +163,34 @@
     });
   };
 
+  /**
+   * Simplifies the task of retrieving the data contained into an excel file,
+   * returns an array of array of strings, representing the rows of the excel file.
+   *
+   * @param $q
+   * @constructor
+   */
+  var ExcelReader = function($q) {
+    this.$q = $q;
+  };
+  ExcelReader.$inject = ['$q'];
+  ExcelReader.prototype.getFirstSheet = function(file) {
+    var $q = this.$q;
+
+    var readData = $q(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        resolve(e.target.result);
+      };
+      reader.readAsBinaryString(file);
+    });
+
+    return readData.then(function(binaryData) {
+      var workbook = XLS.read(binaryData, {type: 'binary'});
+      return Papa.parse(XLS.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]])).data;
+    });
+  };
+
 
   /**
    * Reads an Estratto Conto (PDF) of IWBank into a list of movements
@@ -239,6 +268,51 @@
 
 
 
+  var IWBankListaMovimentiReader = function(ExcelReader, Movement) {
+    this.ExcelReader = ExcelReader;
+    this.Movement = Movement;
+  };
+  IWBankListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  IWBankListaMovimentiReader.prototype.read = function(file) {
+    var Movement = this.Movement;
+    return this.ExcelReader.getFirstSheet(file).then(function(rows) {
+      var reading = false;
+      var document = new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW);
+      _.each(rows, function(row) {
+        if (row.length < 8) {
+          return;
+        }
+        console.log(row[0]);
+        if (!row[0] || row[0].trim().length == 0) {
+          return;
+        }
+        if (row[0] === 'Estrazione Dal' && row[2] === 'Al') {
+          document.date = moment(row[1], 'DD/MM/YYYY');
+        }
+        if (!reading
+          && angular.equals(row, ["CC", "DATA_CONTABILE", "DATA_VALUTA", "CAUSALE", "SEGNO", "IMPORTO", "CATEGORIA", "NOTE"])) {
+          reading = true;
+          return;
+        }
+        if (!reading) {
+          return;
+        }
+
+        // read a record into a movement
+        var movement = new Movement();
+        movement.bankId = null;
+        movement.date = moment(row[1], 'DD/MM/YYYY', 'it');
+        movement.executionDate = moment(row[2], 'DD/MM/YYYY', 'it');
+        movement.description = row[3];
+        movement.amount = (row[4] === '-' ? -1 : 1)*parseFloat(row[5]);
+        document.movements.push(movement);
+      });
+      return document;
+    });
+  };
+
+
+
   var IWBankEstrattoContoCartaReader = function(PDFReader, Movement) {
     this.PDFReader = PDFReader;
     this.Movement = Movement;
@@ -309,7 +383,9 @@
 
   var Reader = angular.module('Desmond.Reader', []);
   Reader.service('PDFReader', PDFReader);
+  Reader.service('ExcelReader', ExcelReader);
   Reader.service('IWBankEstrattoContoReader', IWBankEstrattoContoReader);
+  Reader.service('IWBankListaMovimentiReader', IWBankListaMovimentiReader);
   Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
 
 })(window.jQuery, window.angular);

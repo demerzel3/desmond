@@ -15,7 +15,7 @@
 
   <div ng-file-drop ng-model="ctrl.files" class="drop-box"
       drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-      multiple="true" allow-dir="false" accept="application/pdf">
+      multiple="true" allow-dir="false" accept="*.xls,application/pdf">
       Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank
   </div>
   <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>
@@ -62,6 +62,8 @@
   <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="components/lodash/dist/lodash.min.js"></script>
   <script src="components/pdfjs-bower/dist/pdf.js"></script>
+  <script src="components/js-xls/dist/xls.full.min.js"></script>
+  <script src="components/papaparse.js/papaparse.min.js"></script>
   <script src="components/angular/angular.min.js"></script>
   <script src="components/angular-sanitize/angular-sanitize.min.js"></script>
   <script src="components/angular-layout/dist/angular-layout.min.js"></script>

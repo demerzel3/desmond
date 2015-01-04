@@ -17,6 +17,13 @@
       }
     });
 
+    RulesContainer.rule('Commissioni', function(movement) {
+      if (movement.description.indexOf('COMMISSIONI OPERAZIONI') > -1) {
+        movement.category = CategoriesRepository.all['imposte'];
+        return true;
+      }
+    });
+
     RulesContainer.rule('Interessi', function(movement) {
       if (movement.description.indexOf('GIRO COMPETENZE') > -1) {
         movement.category = CategoriesRepository.all['investimenti'];
