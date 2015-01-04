@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <link href="components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="components/fontawesome/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="components/sweetalert/lib/sweet-alert.css" rel="stylesheet"/>
   <link href="components/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
   <link href="components/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
@@ -15,13 +16,13 @@
   <div ng-file-drop ng-model="ctrl.files" class="drop-box"
       drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
       multiple="true" allow-dir="false" accept="application/pdf">
-      Trascina qui l'estratto conto IWBank
+      Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank
   </div>
   <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>
 
   <hbox>
     <ul class="list-group">
-      <li class="list-group-item" ng-repeat="category in ctrl.categories">
+      <li class="list-group-item" ng-repeat="category in ctrl.categories.all">
         {{category.name}}<br/>
         <small class="text-muted">{{category._id}}</small>
       </li>
@@ -42,7 +43,7 @@
           <td>
             <span ng-bind-html="movement.description|nl2br"></span>
             <div ng-if="movement.replaceable" ng-file-drop ng-model="movement.replaceable.files" class="drop-box"
-                 ng-file-change="ctrl.loadReplaceable(movement, $files)"
+                 ng-file-change="ctrl.replaceMovement(movement, $files[0])"
                  drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
                  multiple="false" allow-dir="false" accept="application/pdf">
               {{movement.replaceable.info}}
@@ -56,6 +57,7 @@
   </hbox>
 
   <script src="components/moment/min/moment-with-locales.min.js"></script>
+  <script src="components/sweetalert/lib/sweet-alert.min.js"></script>
   <script src="components/jquery/dist/jquery.min.js"></script>
   <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="components/lodash/dist/lodash.min.js"></script>

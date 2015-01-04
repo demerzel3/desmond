@@ -20,9 +20,17 @@
     this.rules.push(rule);
     this.rules = _.sortBy(this.rules, 'priority');
   };
+  /**
+   * Apply all the rules to a movement, stopping at the first that applies successfully.
+   *
+   * @param movement
+   */
   RulesContainer.prototype.applyAll = function(movement) {
     _.each(this.rules, function(rule) {
-      rule.callable.apply(movement, [movement]);
+      if (rule.callable.apply(movement, [movement])) {
+        movement._appliedRule = rule.name;
+        return false;
+      }
     });
   };
 

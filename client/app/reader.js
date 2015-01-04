@@ -6,6 +6,32 @@
     return parseFloat(value);
   };
 
+  /**
+   * Represents an imported document, that is probably a file.
+   * Three key pieces of information are coded as properties here:
+   *  - document type (e.g. the source of this document)
+   *  - date of the document
+   *  - total amount of the document
+   * Everything else can be freely stored in 'metadata'.
+   *
+   * @param documentType
+   * @param date
+   * @param total
+   * @param movements
+   * @param metadata could be anything
+   * @constructor
+   */
+  var ImportedDocument = function(documentType, date, total, movements, metadata) {
+    this.documentType = documentType;
+    this.date = date;
+    this.total = total;
+    this.movements = movements;
+    this.metadata = metadata;
+  };
+  ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
+  ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
+
+
   var StringArrayConsumer = function(input) {
     // make a copy of the input, since it will be "consumed"
     this.data = [].concat(input);
@@ -150,22 +176,26 @@
   IWBankEstrattoContoReader.DATE_PATTERN = [/^ESTRATTO AL ([0-9]{2}\/[0-9]{2}\/[0-9]{4})$/];
   IWBankEstrattoContoReader.TABLE_START_PATTERN = ["DATA", "VALUTA", "DARE", "AVERE", "DESCRIZIONE", "N. OPERAZIONE"];
   IWBankEstrattoContoReader.RECORD_PATTERN = [
-        /^[0-9]{2}\/[0-9]{2}$/, // data
-        /^[0-9]{2}\/[0-9]{2}\/[0-9]{2}$/, // valuta
-        /^[0-9\., ]{16}$/, // dare
-        /^[0-9\., ]{16}$/, // avere
-        /\S+/, // descrizione
-        /^\S+$/ // n. operazione
-      ];
+    /^[0-9]{2}\/[0-9]{2}$/, // data
+    /^[0-9]{2}\/[0-9]{2}\/[0-9]{2}$/, // data valuta
+    /^[0-9\., ]{16}$/, // dare
+    /^[0-9\., ]{16}$/, // avere
+    /\S+/, // descrizione
+    /^\S+$/ // n. operazione
+  ];
   IWBankEstrattoContoReader.CONTINUATION_RECORD_PATTERN = [
-        /^[\s]{5}$/, // data
-        /^[\s]{8}$/, // valuta
-        /^[\s]{16}$/, // dare
-        /^[\s]{16}$/, // avere
-        /\S+/, // descrizione
-        null // n. operazione
-      ];
+    /^[\s]{5}$/, // data
+    /^[\s]{8}$/, // data valuta
+    /^[\s]{16}$/, // dare
+    /^[\s]{16}$/, // avere
+    /\S+/, // descrizione
+    null // n. operazione
+  ];
 
+  /**
+   * @param file
+   * @returns {Promise|*}
+   */
   IWBankEstrattoContoReader.prototype.read = function(file) {
     var self = IWBankEstrattoContoReader;
     var Movement = this.Movement;
@@ -193,20 +223,93 @@
       }
 
       // convert records to movements
-      return _.map(records, function(record) {
+      var movements = _.map(records, function(record) {
         var movement = new Movement();
         movement.bankId = record[5];
         movement.date = moment(record[0], 'DD/MM', 'it');
+        movement.executionDate = moment(record[1], 'DD/MM/YY', 'it');
         movement.date.year(documentDate.year());
         movement.description = record[4];
         movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
         return movement;
       });
+      return new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK, documentDate, 0, movements);
+    });
+  };
+
+
+
+  var IWBankEstrattoContoCartaReader = function(PDFReader, Movement) {
+    this.PDFReader = PDFReader;
+    this.Movement = Movement;
+  };
+  IWBankEstrattoContoCartaReader.$inject = ['PDFReader', 'Movement'];
+  IWBankEstrattoContoCartaReader.DATE_TOTAL_PATTERN = [/Addebito in conto corrente il ([0-9]{2}\/[0-9]{2}\/[0-9]{4})/, '(c)', /^[0-9\.,]+$/]
+  IWBankEstrattoContoCartaReader.TABLE_START_PATTERN = [
+    "Data operazione",
+    "Data registrazione",
+    "Descrizione",
+    "Importo in Euro",
+    "Importo valuta originale"
+  ];
+  IWBankEstrattoContoCartaReader.RECORD_PATTERN = [
+    /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data operazione
+    /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data registrazione
+    /\S+/, // descrizione
+    /^[0-9\.,\s]+$/, // importo in euro
+    /^[0-9\.,\s]*$/ // importo in valuta originale
+  ];
+
+  /**
+   *
+   * @param file
+   * @returns {Promise|*}
+   */
+  IWBankEstrattoContoCartaReader.prototype.read = function(file) {
+    var self = IWBankEstrattoContoCartaReader;
+    var Movement = this.Movement;
+
+    return this.PDFReader.toStringArray(file).then(function(strings) {
+      var consumer = new StringArrayConsumer(strings);
+      console.log(strings);
+
+      if (!consumer.readRecord(self.TABLE_START_PATTERN)) {
+        throw new Error('Unable to find the start pattern');
+      }
+
+      var records = [];
+      var record = consumer.readRecord(self.RECORD_PATTERN);
+      while (record != null) {
+        records.push(record);
+        console.log(record);
+        record = consumer.readRecord(self.RECORD_PATTERN);
+      }
+
+      // read document date and total
+      var dateTotal = consumer.readRecord(self.DATE_TOTAL_PATTERN);
+      if (!dateTotal) {
+        throw new Error('Unable to find the date/total pattern');
+      }
+      var documentDate = moment(dateTotal[0].match(self.DATE_TOTAL_PATTERN[0])[1], 'DD/MM/YYYY', 'it');
+      var documentTotal = -parseItalianFloat(dateTotal[2]);
+
+      // convert records to movements
+      var movements = _.map(records, function(record) {
+        var movement = new Movement();
+        movement.bankId = null;
+        movement.date = moment(record[0], 'DD/MM/YYYY', 'it');
+        movement.executionDate = moment(record[1], 'DD/MM/YYYY', 'it');
+        movement.description = 'ACQUISTO CARTA DI CREDITO\n'+record[2];
+        movement.amount = -parseItalianFloat(record[3]);
+        return movement;
+      });
+      return new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW, documentDate, documentTotal, movements);
     });
   };
 
   var Reader = angular.module('Desmond.Reader', []);
   Reader.service('PDFReader', PDFReader);
   Reader.service('IWBankEstrattoContoReader', IWBankEstrattoContoReader);
+  Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
 
 })(window.jQuery, window.angular);

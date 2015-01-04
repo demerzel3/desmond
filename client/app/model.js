@@ -3,6 +3,7 @@
   var Movement = function() {
     this.accountId = null;
     this.date = moment();
+    this.executionDate = moment();
     this.bankId = null;
     this.description = null;
     this.amount = 0;
