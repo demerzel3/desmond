@@ -22,7 +22,11 @@
           ctrl.importFile(account, file, 'IWBankListaMovimentiReader');
         }
       } else if ('bnl' === account.bank) {
-
+        if (file.type == 'application/pdf') {
+          ctrl.importFile(account, file, 'BNLEstrattoContoReader');
+        } else {
+          ctrl.importFile(account, file, 'BNLListaMovimentiReader');
+        }
       } else if ('chebanca' === account.bank) {
 
       }

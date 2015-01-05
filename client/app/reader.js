@@ -31,6 +31,7 @@
   ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
   ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
   ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
+  ImportedDocument.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
 
 
   var StringArrayConsumer = function(input) {
@@ -259,6 +260,7 @@
         movement.executionDate = moment(record[1], 'DD/MM/YY', 'it');
         movement.date.year(documentDate.year());
         movement.description = record[4];
+        movement.direction = (record[2].length > 0) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
         movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
         return movement;
       });
@@ -277,7 +279,7 @@
     var Movement = this.Movement;
     return this.ExcelReader.getFirstSheet(file).then(function(rows) {
       var reading = false;
-      var document = new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW);
+      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK);
       _.each(rows, function(row) {
         if (row.length < 8) {
           return;
@@ -303,7 +305,53 @@
         movement.date = moment(row[1], 'DD/MM/YYYY', 'it');
         movement.executionDate = moment(row[2], 'DD/MM/YYYY', 'it');
         movement.description = row[3];
+        movement.direction = (row[4] === '-') ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
         movement.amount = (row[4] === '-' ? -1 : 1)*parseFloat(row[5]);
+        document.movements.push(movement);
+      });
+      return document;
+    });
+  };
+
+
+
+  var BNLListaMovimentiReader = function(ExcelReader, Movement) {
+    this.ExcelReader = ExcelReader;
+    this.Movement = Movement;
+  };
+  BNLListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  BNLListaMovimentiReader.prototype.read = function(file) {
+    var Movement = this.Movement;
+    return this.ExcelReader.getFirstSheet(file).then(function(rows) {
+      var reading = false;
+      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_BNL);
+      _.each(rows, function(row) {
+        if (row.length < 5) {
+          return;
+        }
+        if (!row[0] || row[0].trim().length == 0) {
+          return;
+        }
+        if (row[0] === 'Saldo Contabile al:') {
+          document.date = moment(row[1], 'DD/MM/YYYY');
+        }
+        if (!reading
+          && angular.equals(row, ["Data contabile", "Data valuta", "Causale ABI", "Descrizione", "Importo"])) {
+          reading = true;
+          return;
+        }
+        if (!reading) {
+          return;
+        }
+
+        // read a record into a movement
+        var movement = new Movement();
+        movement.bankId = null;
+        movement.date = moment(row[0], 'DD/MM/YYYY', 'it');
+        movement.executionDate = moment(row[1], 'DD/MM/YYYY', 'it');
+        movement.description = row[3];
+        movement.direction = (row[4][0] === '+') ? Movement.DIRECTION_IN : Movement.DIRECTION_OUT;
+        movement.amount = parseFloat(row[4].replace(/--/g, '-').replace(/,/g, ''));
         document.movements.push(movement);
       });
       return document;
@@ -386,5 +434,6 @@
   Reader.service('IWBankEstrattoContoReader', IWBankEstrattoContoReader);
   Reader.service('IWBankListaMovimentiReader', IWBankListaMovimentiReader);
   Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
+  Reader.service('BNLListaMovimentiReader', BNLListaMovimentiReader);
 
 })(window.jQuery, window.angular);

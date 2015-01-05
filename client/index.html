@@ -41,6 +41,7 @@
           <th>Causale</th>
           <th>Categoria</th>
           <th>Importo (EUR)</th>
+          <th></th>
         </tr>
         <tr ng-repeat="movement in ctrl.movements">
           <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
@@ -56,6 +57,10 @@
           </td>
           <td>{{movement.category.name}}</td>
           <td class="text-right">{{movement.amount | number:2}} €</td>
+          <td>
+            <i class="fa fa-arrow-left movement-in" ng-if="movement.direction === 'in'"></i>
+            <i class="fa fa-arrow-right movement-out" ng-if="movement.direction === 'out'"></i>
+          </td>
         </tr>
       </table>
     </vbox>

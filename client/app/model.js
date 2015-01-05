@@ -7,9 +7,16 @@
     this.bankId = null;
     this.description = null;
     this.amount = 0;
-    this.categoryId = null;
     this.category = null;
+
+    this.direction = null;
+    // source of this movement (account?)
+    this.source = null;
+    // destination of this movement (account?)
+    this.destination = null;
   };
+  Movement.DIRECTION_IN = 'in';
+  Movement.DIRECTION_OUT = 'out';
 
   var CategoriesRepository = function(Restangular) {
     this.all = [];
@@ -35,6 +42,9 @@
     });
   };
   AccountsRepository.$inject = ['Restangular'];
+  AccountsRepository.prototype.findByName = function(name) {
+    return _.find(this.all, {name: name});
+  };
 
   var Model = angular.module('Desmond.Model', ['restangular']);
   Model.factory('Movement', function() { return Movement; });

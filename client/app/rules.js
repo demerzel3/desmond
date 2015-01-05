@@ -1,7 +1,7 @@
 (function($, angular) {
 
   var Rules = angular.module('Desmond.Rules', ['Desmond.Service', 'Desmond.Model']);
-  Rules.run(['RulesContainer', 'CategoriesRepository', function(RulesContainer, CategoriesRepository) {
+  Rules.run(['RulesContainer', 'CategoriesRepository', 'AccountsRepository', function(RulesContainer, CategoriesRepository, AccountsRepository) {
 
     RulesContainer.rule('F24', function(movement) {
       if (movement.description.indexOf('ADDEBITO DELEGA F24') > -1) {
@@ -18,14 +18,22 @@
     });
 
     RulesContainer.rule('Commissioni', function(movement) {
-      if (movement.description.indexOf('COMMISSIONI OPERAZIONI') > -1) {
-        movement.category = CategoriesRepository.all['imposte'];
+      if (movement.description.indexOf('COMMISSIONI OPERAZIONI') > -1
+        || movement.description.indexOf('SPESE DI APERTURA') > -1
+        || movement.description.indexOf('CANONE CONTO') > -1
+        || movement.description.indexOf('COSTO CARNET ASSEGNI') > -1
+        || movement.description.indexOf('SPESE DI REGISTRAZIONE') > -1
+        || movement.description.indexOf('SPESE INVIO DOCUMENTO') > -1
+        || movement.description.indexOf('SPESE INVIO E/C') > -1
+        || movement.description.indexOf('RECUPERO SPESE') > -1) {
+        movement.category = CategoriesRepository.all['commissioni'];
         return true;
       }
     });
 
     RulesContainer.rule('Interessi', function(movement) {
-      if (movement.description.indexOf('GIRO COMPETENZE') > -1) {
+      if (movement.description.indexOf('GIRO COMPETENZE') > -1
+        || movement.description.indexOf('COMPETENZE SU C/C') > -1) {
         movement.category = CategoriesRepository.all['investimenti'];
         return true;
       }
@@ -33,7 +41,7 @@
 
     RulesContainer.rule('Supermercati e Alimentari', function(movement) {
       if (movement.description.indexOf('PAGOBANCOMAT') > -1
-      || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1) {
+        || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1) {
         if (movement.description.indexOf('ESSELUN') > -1
           || movement.description.indexOf('IPERCOO') > -1
           || movement.description.indexOf('CONAD') > -1
@@ -67,7 +75,7 @@
 
     RulesContainer.rule('Ristoranti', function(movement) {
       if (movement.description.indexOf('RISTORAN') > -1
-      || movement.description.indexOf('OSTERIA') > -1) {
+        || movement.description.indexOf('OSTERIA') > -1) {
         movement.category = CategoriesRepository.all['tempo_libero'];
         return true;
       }
@@ -75,7 +83,7 @@
 
     RulesContainer.rule('Cinema', function(movement) {
       if (movement.description.indexOf('SKYLINE') > -1
-       || movement.description.indexOf('UCI MILANO') > -1) {
+        || movement.description.indexOf('UCI MILANO') > -1) {
         movement.category = CategoriesRepository.all['tempo_libero'];
         return true;
       }
@@ -91,6 +99,20 @@
     RulesContainer.rule('Abbigliamento', function(movement) {
       if (movement.description.indexOf('GEOX') > -1) {
         movement.category = CategoriesRepository.all['abbigliamento'];
+        return true;
+      }
+    });
+
+    RulesContainer.rule('Mutuo', function(movement) {
+      if (movement.description.indexOf('RIMBORSO FINANZIAMENTO N.') > -1) {
+        movement.category = CategoriesRepository.all['mutuo'];
+        return true;
+      }
+    });
+
+    RulesContainer.rule('Mutuo', function(movement) {
+      if (movement.description.indexOf('ADDEBITO SEPA DD') > -1) {
+        movement.category = CategoriesRepository.all['bollette'];
         return true;
       }
     });
