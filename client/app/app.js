@@ -2,36 +2,34 @@
 
   var IWBANK_ACCOUNT_ID = '54a6f6a30364252c133e6c94';
 
-  var MainController = function($scope, $q, $injector, Restangular, RulesContainer, CategoriesRepository) {
+  var MainController = function($q, $injector, RulesContainer, CategoriesRepository, AccountsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.RulesContainer = RulesContainer;
     this.categories = CategoriesRepository;
+    this.accounts = AccountsRepository;
     this.files = [];
-    this.accounts = [];
     this.movements = [];
+  };
+  MainController.$inject = ['$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository'];
+
+  MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
-
-    // read all accounts
-    Restangular.all('accounts').getList().then(function(accounts) {
-      ctrl.accounts = accounts;
-    });
-
-    $scope.$watch('ctrl.files', function(files, oldValue) {
-      if (files === oldValue) {
-        return;
-      }
-      _.each(files, function(file) {
-        console.log(file);
+    console.log('Importing files for ', account.name);
+    _.each(files, function(file) {
+      if ('iwbank' === account.bank) {
         if (file.type == 'application/pdf') {
-          ctrl.importFile(file, 'IWBankEstrattoContoReader');
+          ctrl.importFile(account, file, 'IWBankEstrattoContoReader');
         } else {
-          ctrl.importFile(file, 'IWBankListaMovimentiReader');
+          ctrl.importFile(account, file, 'IWBankListaMovimentiReader');
         }
-      });
+      } else if ('bnl' === account.bank) {
+
+      } else if ('chebanca' === account.bank) {
+
+      }
     });
   };
-  MainController.$inject = ['$scope', '$q', '$injector', 'Restangular', 'RulesContainer', 'CategoriesRepository'];
 
   MainController.prototype.readFile = function(file, readerName) {
     var reader = this.$injector.get(readerName);
@@ -47,10 +45,13 @@
     });
   };
 
-  MainController.prototype.importFile = function(file, readerName) {
+  MainController.prototype.importFile = function(account, file, readerName) {
     var ctrl = this;
     this.readFile(file, readerName).then(function(document) {
       ctrl.applyAllRules(document);
+      _.each(document.movements, function(movement) {
+        movement.account = account;
+      });
       ctrl.movements = _.sortBy([].concat(ctrl.movements, document.movements), function(movement) {
         return movement.date.toISOString();
       });
@@ -69,6 +70,9 @@
       }
 
       ctrl.applyAllRules(document);
+      _.each(document.movements, function(mov) {
+        mov.account = movement.account;
+      });
 
       // remove the replaced element from the list
       var movementIndex = ctrl.movements.indexOf(movement);

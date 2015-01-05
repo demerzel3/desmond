@@ -282,7 +282,6 @@
         if (row.length < 8) {
           return;
         }
-        console.log(row[0]);
         if (!row[0] || row[0].trim().length == 0) {
           return;
         }

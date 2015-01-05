@@ -100,7 +100,7 @@
         // this movement is replaceable with more detailed ones, loadable from another file
         movement.replaceable = {
           info: 'Trascina qui l\'estratto conto della carta di credito per caricare i dettagli',
-          type: 'application/pdf',
+          accept: 'application/pdf',
           reader: ''
         };
         return true;

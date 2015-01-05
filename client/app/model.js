@@ -12,7 +12,7 @@
   };
 
   var CategoriesRepository = function(Restangular) {
-    this.all = null;
+    this.all = [];
 
     var repo = this;
     Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
@@ -26,8 +26,19 @@
   };
   CategoriesRepository.$inject = ['Restangular'];
 
+  var AccountsRepository = function(Restangular) {
+    this.all = null;
+
+    var repo = this;
+    Restangular.all('accounts').getList().then(function(accounts) {
+      repo.all = accounts;
+    });
+  };
+  AccountsRepository.$inject = ['Restangular'];
+
   var Model = angular.module('Desmond.Model', ['restangular']);
   Model.factory('Movement', function() { return Movement; });
   Model.service('CategoriesRepository', CategoriesRepository);
+  Model.service('AccountsRepository', AccountsRepository);
 
 })(window.jQuery, window.angular);

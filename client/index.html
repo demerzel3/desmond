@@ -13,12 +13,17 @@
 </head>
 <body vbox ng-app="Desmond" ng-controller="MainController as ctrl">
 
-  <div ng-file-drop ng-model="ctrl.files" class="drop-box"
-      drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-      multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-      Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank
-  </div>
-  <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>
+  <hbox>
+    <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.all" class="drop-box"
+        drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+        ng-file-change="ctrl.importFiles(account, $files)"
+        multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+        <!-- Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank -->
+        <img ng-src="{{account.avatarUrl}}" class="account" width="32" height="32" alt="{{account.description}}"/>
+        {{account.name}}<br/>
+      <small class="text-muted">Trascina qui i documenti per importarli</small>
+    </div>
+  </hbox>
 
   <hbox>
     <ul class="list-group">
@@ -38,14 +43,14 @@
           <th>Importo (EUR)</th>
         </tr>
         <tr ng-repeat="movement in ctrl.movements">
-          <td><img class="account" src="images/iwbank.png" width="32" height="32"/></td>
+          <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>
             <span ng-bind-html="movement.description|nl2br"></span>
-            <div ng-if="movement.replaceable" ng-file-drop ng-model="movement.replaceable.files" class="drop-box"
+            <div ng-if="movement.replaceable" ng-file-drop class="drop-box"
                  ng-file-change="ctrl.replaceMovement(movement, $files[0])"
                  drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-                 multiple="false" allow-dir="false" accept="application/pdf">
+                 multiple="false" allow-dir="false" accept="{{ctrl.replaceable.accept}}">
               {{movement.replaceable.info}}
             </div>
           </td>
