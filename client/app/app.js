@@ -1,7 +1,5 @@
 (function($, angular) {
 
-  var IWBANK_ACCOUNT_ID = '54a6f6a30364252c133e6c94';
-
   var MainController = function($q, $injector, RulesContainer, CategoriesRepository, AccountsRepository) {
     this.$q = $q;
     this.$injector = $injector;
@@ -60,13 +58,14 @@
 
   MainController.prototype.replaceMovement = function(movement, file) {
     var ctrl = this;
-    this.readFile(file, 'IWBankEstrattoContoCartaReader').then(function(document) {
-      if (!movement.executionDate.isSame(document.date, 'day')
-        || movement.amount != document.total) {
-        console.log(movement.executionDate.format(), document.date.format());
-        console.log(movement.amount, document.total);
-        sweetAlert('Oops..', 'Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che le date e gli importi corrispondano e riprova.');
-        return;
+    this.readFile(file, movement.replaceable.reader).then(function(document) {
+      if (movement.replaceable.checker) {
+        try {
+          movement.replaceable.checker(movement, document);
+        } catch (e) {
+          sweetAlert('Oops..', e.message);
+          return;
+        }
       }
 
       ctrl.applyAllRules(document);

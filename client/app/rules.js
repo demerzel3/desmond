@@ -101,7 +101,15 @@
         movement.replaceable = {
           info: 'Trascina qui l\'estratto conto della carta di credito per caricare i dettagli',
           accept: 'application/pdf',
-          reader: ''
+          reader: 'IWBankEstrattoContoCartaReader',
+          checker: function(movement, document) {
+            if (!movement.executionDate.isSame(document.date, 'day')
+              || movement.amount != document.total) {
+              console.log(movement.executionDate.format(), document.date.format());
+              console.log(movement.amount, document.total);
+              throw new Error('Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che le date e gli importi corrispondano e riprova.');
+            }
+          }
         };
         return true;
       }
