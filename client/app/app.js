@@ -128,7 +128,7 @@
       '#CD0D74',
       '#9900FF'
     ];
-    var data = _.map(sources, function(source, index) {
+    var data = _.sortBy(_.map(sources, function(source) {
       return {
         value: _.reduce(_.where(movements, {source: source}), function(sum, movement) {
           if (movement.source && 'bank_account' === movement.source.type) {
@@ -137,10 +137,13 @@
             return sum + movement.amount;
           }
         }, 0),
-        color: colors[index % colors.length],
+        //color: colors[index % colors.length],
         //highlight: "#FF5A5E",
         label: source ? source.name : 'Sconosciuto'
       };
+    }), 'value').reverse();
+    _.each(data, function(dataItem, index) {
+      dataItem.color = colors[index % colors.length]
     });
     //console.log(data);
 
