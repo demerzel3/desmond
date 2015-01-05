@@ -1,6 +1,6 @@
 (function($, angular) {
 
-  var MainController = function($q, $injector, RulesContainer, CategoriesRepository, AccountsRepository) {
+  var MainController = function($scope, $q, $injector, RulesContainer, CategoriesRepository, AccountsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.RulesContainer = RulesContainer;
@@ -8,8 +8,16 @@
     this.accounts = AccountsRepository;
     this.files = [];
     this.movements = [];
+
+    var ctrl = this;
+    $scope.$watch('ctrl.movements', function(movements, oldValue) {
+      if (movements === oldValue) {
+        return;
+      }
+      ctrl.refreshCharts();
+    });
   };
-  MainController.$inject = ['$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository'];
+  MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository'];
 
   MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
@@ -96,6 +104,52 @@
     });
   };
 
+  var bySourceChart = null;
+  MainController.prototype.refreshCharts = function() {
+    if (bySourceChart) {
+      //<canvas id="bySourceChart" width="200" height="200"></canvas>
+      $('#bySourceChartContainer > canvas').remove();
+    }
+    $('#bySourceChartContainer').append('<canvas id="bySourceChart" width="200" height="200"></canvas>');
+    bySourceChart = new Chart($('#bySourceChartContainer > canvas').get(0).getContext("2d"));
+
+    var movements = _.where(this.movements, {direction: 'in'});
+    var sources = _.uniq(_.map(movements, function(movement) {
+      return movement.source;
+    }));
+    //console.log(sources);
+
+    var colors = [
+      '#0D8ECF',
+      '#48B040',
+      '#B0DE09',
+      '#FCD202',
+      '#FF6600',
+      '#CD0D74',
+      '#9900FF'
+    ];
+    var data = _.map(sources, function(source, index) {
+      return {
+        value: _.reduce(_.where(movements, {source: source}), function(sum, movement) {
+          if (movement.source && 'bank_account' === movement.source.type) {
+            return sum;
+          } else {
+            return sum + movement.amount;
+          }
+        }, 0),
+        color: colors[index % colors.length],
+        //highlight: "#FF5A5E",
+        label: source ? source.name : 'Sconosciuto'
+      };
+    });
+    //console.log(data);
+
+    bySourceChart.Doughnut(data, {
+      animation: false,
+      tooltipTemplate: 'label + " " + (value | number:2) + " €"'
+    });
+  };
+
   var Desmond = angular.module('Desmond', [
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model'
@@ -108,6 +162,14 @@
       }, 0.0);
     }
   });
+
+  // leverage angular $parse to replace the too simplistic templating engine of Charts.js
+  Desmond.run(['$parse', function($parse) {
+    Chart.helpers.template = function(tpl, data) {
+      var getter = $parse(tpl);
+      return getter(data);
+    };
+  }]);
 
   Desmond.config(['RestangularProvider', function(RestangularProvider) {
     RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');

@@ -33,6 +33,7 @@
         <small class="text-muted">{{category._id}}</small>
       </li>
     </ul>
+
     <vbox grow="1">
       {{ctrl.movements.length}} movimenti
       <table class="table table-bordered">
@@ -65,12 +66,20 @@
             <i class="fa fa-arrow-right movement-out" ng-if="movement.direction === 'out'"></i>
             <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
             <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
+            IN{{movement.source.name}}
           </td>
         </tr>
       </table>
     </vbox>
+
+    <vbox shrink="0" grow="0">
+      <h3>Per fonte</h3>
+      <div id="bySourceChartContainer">
+      </div>
+    </vbox>
   </hbox>
 
+  <script src="components/chartjs/Chart.js"></script>
   <script src="components/moment/min/moment-with-locales.min.js"></script>
   <script src="components/sweetalert/lib/sweet-alert.min.js"></script>
   <script src="components/jquery/dist/jquery.min.js"></script>
