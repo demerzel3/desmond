@@ -40,9 +40,9 @@
     });
   };
 
-  MainController.prototype.applyAllRules = function(document) {
+  MainController.prototype.applyAllRules = function(movements) {
     var RulesContainer = this.RulesContainer;
-    _.each(document.movements, function(movement) {
+    _.each(movements, function(movement) {
       RulesContainer.applyAll(movement);
     });
   };
@@ -50,13 +50,10 @@
   MainController.prototype.importFile = function(account, file, readerName) {
     var ctrl = this;
     this.readFile(file, readerName).then(function(document) {
-      ctrl.applyAllRules(document);
       _.each(document.movements, function(movement) {
         movement.account = account;
       });
-      ctrl.movements = _.sortBy([].concat(ctrl.movements, document.movements), function(movement) {
-        return movement.date.toISOString();
-      });
+      ctrl.appendMovements(document.movements);
     });
   };
 
@@ -72,19 +69,30 @@
         }
       }
 
-      ctrl.applyAllRules(document);
-      _.each(document.movements, function(mov) {
-        mov.account = movement.account;
-      });
-
       // remove the replaced element from the list
       var movementIndex = ctrl.movements.indexOf(movement);
       ctrl.movements.splice(movementIndex, 1);
 
-      // insert the new elements (in order)
-      ctrl.movements = _.sortBy([].concat(ctrl.movements, document.movements), function(movement) {
-        return movement.date.toISOString();
+      _.each(document.movements, function(mov) {
+        mov.account = movement.account;
       });
+      ctrl.appendMovements(document.movements);
+    });
+  };
+
+  MainController.prototype.appendMovements = function(movements) {
+    this.applyAllRules(movements);
+    var newMovements = [];
+    _.each(movements, function(movement) {
+      if (movement.sourceMovement) {
+        newMovements.push(movement.sourceMovement);
+      }
+      if (movement.destinationMovement) {
+        newMovements.push(movement.destinationMovement);
+      }
+    });
+    this.movements = _.sortBy([].concat(this.movements, movements, newMovements), function(movement) {
+      return movement.date.toISOString();
     });
   };
 
@@ -92,6 +100,14 @@
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model'
   ]);
+
+  Desmond.filter('total', function() {
+    return function(movements) {
+      return _.reduce(movements, function(total, movement) {
+        return total + movement.amount;
+      }, 0.0);
+    }
+  });
 
   Desmond.config(['RestangularProvider', function(RestangularProvider) {
     RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');

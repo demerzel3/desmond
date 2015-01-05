@@ -1,7 +1,7 @@
 (function($, angular) {
 
   var Rules = angular.module('Desmond.Rules', ['Desmond.Service', 'Desmond.Model']);
-  Rules.run(['RulesContainer', 'CategoriesRepository', 'AccountsRepository', function(RulesContainer, CategoriesRepository, AccountsRepository) {
+  Rules.run(['RulesContainer', 'CategoriesRepository', 'AccountsRepository', 'Movement', function(RulesContainer, CategoriesRepository, AccountsRepository, Movement) {
 
     RulesContainer.rule('F24', function(movement) {
       if (movement.description.indexOf('ADDEBITO DELEGA F24') > -1) {
@@ -35,6 +35,7 @@
       if (movement.description.indexOf('GIRO COMPETENZE') > -1
         || movement.description.indexOf('COMPETENZE SU C/C') > -1) {
         movement.category = CategoriesRepository.all['investimenti'];
+        movement.source = AccountsRepository.moneyAccount;
         return true;
       }
     });
@@ -134,6 +135,75 @@
           }
         };
         return true;
+      }
+    });
+
+
+    RulesContainer.rule('Trasferimenti', function(movement) {
+      if (movement.account.bank === 'bnl') {
+        if (movement.description.indexOf('VERSAMENTO DI CONTANTE O ASSIMILATI') > -1
+          || movement.description.trim() == 'BONIFICO SEPA A VOSTRO FAVORE') {
+          movement.source = AccountsRepository.moneyAccount;
+          return true;
+        }
+        if (movement.description.indexOf('BONIFICO A VOSTRO FAVORE') > -1) {
+          if (movement.description.indexOf('DA DE CARLO BARBARA, GENTA GABRIELE') > -1) {
+            movement.source = AccountsRepository.findByName('IWBank');
+          } else if (movement.description.indexOf('GENTA GABRIELE') > -1) {
+            movement.source = AccountsRepository.findByName('Gabriele');
+          } else if (movement.description.indexOf('DE CARLO BARBARA') > -1) {
+            movement.source = AccountsRepository.findByName('Barbara');
+          }
+          return true;
+        }
+      } else if (movement.account.bank === 'iwbank') {
+        if (movement.description.indexOf('VERSAMENTO C/O POSTE') > -1) {
+          movement.source = AccountsRepository.moneyAccount;
+          return true;
+        }
+        if (movement.description.indexOf('BONIFICO A VS. FAVORE') > -1
+          || movement.description.indexOf('BONIFICO A VOSTRO FAVORE') > -1
+          || movement.description.indexOf('PRIMO BONIFICO') > -1) {
+          if (movement.description.toUpperCase().indexOf('GENTA GABRIELE') > -1) {
+            movement.source = AccountsRepository.findByName('Gabriele');
+          } else if (movement.description.toUpperCase().indexOf('DE CARLO BARBARA') > -1) {
+            movement.source = AccountsRepository.findByName('Barbara');
+          } else if (movement.description.toUpperCase().indexOf('MARICA') > -1) {
+            movement.source = AccountsRepository.findByName('Marica');
+          } else if (movement.description.toUpperCase().indexOf('GIUSEPPE DE CARLO') > -1
+            || movement.description.toUpperCase().indexOf('DE CARLO GIUSEPPE') > -1) {
+            movement.source = AccountsRepository.findByName('Pino');
+          } else if (movement.description.toUpperCase().indexOf('GENTA LUCIANO') > -1) {
+            movement.source = AccountsRepository.findByName('Luciano');
+          }
+          return true;
+        }
+        if (movement.description.indexOf('GIROCONTO') > -1) {
+          if (movement.description.indexOf('CAPITALE A SCADENZA') > -1
+            || movement.description.indexOf('TRASFERIMENTO IN') > -1
+            || movement.description.indexOf('TRASFERIMENTO OUT')) {
+            var iwPower = AccountsRepository.findByName('IWPower');
+            // there is no movements source for IWPower, so its movements are built from the movements of the main IWBank account
+            var invMovement = angular.copy(movement);
+            invMovement.account = iwPower;
+            invMovement.direction = (Movement.DIRECTION_IN === movement.direction) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
+            invMovement.amount = -movement.amount;
+            if (Movement.DIRECTION_IN === movement.direction) {
+              movement.source = iwPower;
+              movement.sourceMovement = invMovement;
+              invMovement.direction = Movement.DIRECTION_OUT;
+              invMovement.destination = movement.account;
+              invMovement.destinationMovement = movement;
+            } else {
+              movement.destination = iwPower;
+              movement.destinationMovement = invMovement;
+              invMovement.direction = Movement.DIRECTION_IN;
+              invMovement.source = movement.account;
+              invMovement.sourceMovement = movement;
+            }
+          }
+          return true;
+        }
       }
     });
 

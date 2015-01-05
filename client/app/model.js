@@ -10,10 +10,10 @@
     this.category = null;
 
     this.direction = null;
-    // source of this movement (account?)
     this.source = null;
-    // destination of this movement (account?)
+    this.sourceMovement = null; // link to the inverse movement in the source account
     this.destination = null;
+    this.destinationMovement = null; // link to the inverse movement in the destination account
   };
   Movement.DIRECTION_IN = 'in';
   Movement.DIRECTION_OUT = 'out';
@@ -34,11 +34,25 @@
   CategoriesRepository.$inject = ['Restangular'];
 
   var AccountsRepository = function(Restangular) {
-    this.all = null;
+    this.bankAccounts = [];
+    this.people = [];
+    this.all = [];
+    this.moneyAccount = {
+      _id: 'money',
+      name: 'Contanti',
+      avatarUrl: 'images/money.jpg'
+    };
 
     var repo = this;
     Restangular.all('accounts').getList().then(function(accounts) {
       repo.all = accounts;
+      _.each(accounts, function(account) {
+        if ('bank_account' === account.type) {
+          repo.bankAccounts.push(account);
+        } else if ('person' === account.type) {
+          repo.people.push(account);
+        }
+      });
     });
   };
   AccountsRepository.$inject = ['Restangular'];

@@ -14,13 +14,14 @@
 <body vbox ng-app="Desmond" ng-controller="MainController as ctrl">
 
   <hbox>
-    <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.all" class="drop-box"
+    <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
         drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
         ng-file-change="ctrl.importFiles(account, $files)"
         multiple="true" allow-dir="false" accept="*.xls,application/pdf">
         <!-- Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank -->
         <img ng-src="{{account.avatarUrl}}" class="account" width="32" height="32" alt="{{account.description}}"/>
         {{account.name}}<br/>
+        {{ctrl.movements | filter:{account:account} | total | number:2}} €<br/>
       <small class="text-muted">Trascina qui i documenti per importarli</small>
     </div>
   </hbox>
@@ -38,14 +39,16 @@
         <tr>
           <th>Conto</th>
           <th>Data</th>
+          <th>Data Valuta</th>
           <th>Causale</th>
           <th>Categoria</th>
           <th>Importo (EUR)</th>
           <th></th>
         </tr>
-        <tr ng-repeat="movement in ctrl.movements">
+        <tr ng-repeat="movement in ctrl.movements" ng-class="{replaceable: movement.replaceable}">
           <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
+          <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>
             <span ng-bind-html="movement.description|nl2br"></span>
             <div ng-if="movement.replaceable" ng-file-drop class="drop-box"
@@ -57,9 +60,11 @@
           </td>
           <td>{{movement.category.name}}</td>
           <td class="text-right">{{movement.amount | number:2}} €</td>
-          <td>
+          <td style="white-space: nowrap">
             <i class="fa fa-arrow-left movement-in" ng-if="movement.direction === 'in'"></i>
             <i class="fa fa-arrow-right movement-out" ng-if="movement.direction === 'out'"></i>
+            <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
+            <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
           </td>
         </tr>
       </table>

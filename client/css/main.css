@@ -19,3 +19,6 @@ img.account {
 .fa.movement-out {
   color: #bd0000;
 }
+table tr.replaceable td {
+  background-color: #fff884;
+}
