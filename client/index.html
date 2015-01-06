@@ -21,7 +21,7 @@
         <!-- Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank -->
         <img ng-src="{{account.avatarUrl}}" class="account" width="32" height="32" alt="{{account.description}}"/>
         {{account.name}}<br/>
-        {{ctrl.movements | filter:{account:account} | total | number:2}} €<br/>
+        {{ctrl.movements.all | filter:{account:account} | total | number:2}} €<br/>
       <small class="text-muted">Trascina qui i documenti per importarli</small>
     </div>
   </hbox>
@@ -119,7 +119,7 @@
           </div>
         </div>
       </div>
-      {{ctrl.movements.length}} movimenti
+      {{ctrl.movements.all.length}} movimenti
       <table class="table table-bordered">
         <tr>
           <th>Conto</th>
@@ -130,7 +130,7 @@
           <th>Importo (EUR)</th>
           <th></th>
         </tr>
-        <tr ng-repeat="movement in ctrl.movements | filter:ctrl.movementsFilterFunction" ng-class="{replaceable: movement.replaceable}">
+        <tr ng-repeat="movement in ctrl.movements.all | filter:ctrl.movementsFilterFunction track by movement._id" ng-class="{replaceable: movement.replaceable}">
           <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>

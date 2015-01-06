@@ -1,13 +1,13 @@
 (function($, angular) {
 
-  var MainController = function($scope, $q, $injector, RulesContainer, CategoriesRepository, AccountsRepository) {
+  var MainController = function($scope, $q, $injector, RulesContainer, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.RulesContainer = RulesContainer;
     this.categories = CategoriesRepository;
     this.accounts = AccountsRepository;
+    this.movements = MovementsRepository;
     this.files = [];
-    this.movements = [];
     this.sources = [];
     this.destinations = [];
     this.filters = {
@@ -19,7 +19,7 @@
     };
 
     var ctrl = this;
-    $scope.$watch('ctrl.movements', function(movements, oldValue) {
+    $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
       if (movements === oldValue) {
         return;
       }
@@ -29,7 +29,7 @@
     // gets executed under the global scope, must be defined in a place where it can access filters independently of "this"
     this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
-  MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository'];
+  MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
 
   MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
@@ -92,8 +92,8 @@
       }
 
       // remove the replaced element from the list
-      var movementIndex = ctrl.movements.indexOf(movement);
-      ctrl.movements.splice(movementIndex, 1);
+      var movementIndex = ctrl.movements.all.indexOf(movement);
+      ctrl.movements.all.splice(movementIndex, 1);
 
       _.each(document.movements, function(mov) {
         mov.account = movement.account;
@@ -104,21 +104,12 @@
 
   MainController.prototype.appendMovements = function(movements) {
     this.applyAllRules(movements);
-    var newMovements = [];
-    _.each(movements, function(movement) {
-      if (movement.sourceMovement) {
-        newMovements.push(movement.sourceMovement);
-      }
-      if (movement.destinationMovement) {
-        newMovements.push(movement.destinationMovement);
-      }
-    });
-    this.movements = _.sortBy([].concat(this.movements, movements, newMovements), function(movement) {
-      return movement.date.toISOString();
-    });
 
+    this.movements.add(movements);
+
+    /*
     // extract sources (for filters)
-    var sources = _.where(this.movements, {direction: 'in'});
+    var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
     sources = _.uniq(sources);
     sources = _.filter(sources, function(source) {
@@ -127,13 +118,14 @@
     this.sources = _.sortBy(sources, 'name');
 
     // extract destinations (for filters)
-    var destinations = _.where(this.movements, {direction: 'out'});
+    var destinations = _.where(this.movements.all, {direction: 'out'});
     destinations = _.pluck(destinations, 'destination');
     destinations = _.uniq(destinations);
     destinations = _.filter(destinations, function(destination) {
       return !!destination;
     });
     this.destinations = _.sortBy(destinations, 'name');
+    */
   };
 
   MainController.prototype.buildMovementsFilterFunction = function() {
@@ -222,7 +214,7 @@
     return new Chart(canvas.get(0).getContext("2d"));
   };
   MainController.prototype.buildIncomingBySourceChart = function() {
-    var movements = _.where(this.movements, {direction: 'in'});
+    var movements = _.where(this.movements.all, {direction: 'in'});
     var sources = _.uniq(_.map(movements, function(movement) {
       return movement.source;
     }));
@@ -250,7 +242,7 @@
   };
 
   MainController.prototype.buildOutgoingByCategoryChart = function() {
-    var movements = _.where(this.movements, {direction: 'out'});
+    var movements = _.where(this.movements.all, {direction: 'out'});
     var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
       return !!category;
     });
@@ -305,7 +297,24 @@
     // extract data from the list response of restheart
     RestangularProvider.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
       if (operation === "getList") {
-        return data['_embedded']['rh:doc'];
+        if (data['_embedded'] && data['_embedded']['rh:doc']) {
+          return data['_embedded']['rh:doc'];
+        } else {
+          return [];
+        }
+      } else if (operation === "post") {
+        // sometimes data is an empty string, restheart error?
+        if (!_.isObject(data)) {
+          data = {};
+        }
+        if (response.status === 201) {
+          var urlChunks = response.headers().location.split('/');
+          console.log(urlChunks[urlChunks.length - 1]);
+          data._id = urlChunks[urlChunks.length - 1];
+        } else {
+          console.error(response);
+        }
+        return data;
       } else {
         return data;
       }
