@@ -8,6 +8,15 @@
     this.accounts = AccountsRepository;
     this.files = [];
     this.movements = [];
+    this.sources = [];
+    this.destinations = [];
+    this.filters = {
+      account: null,
+      source: null,
+      destination: null,
+      category: null,
+      direction: null
+    };
 
     var ctrl = this;
     $scope.$watch('ctrl.movements', function(movements, oldValue) {
@@ -16,6 +25,9 @@
       }
       ctrl.refreshCharts();
     });
+
+    // gets executed under the global scope, must be defined in a place where it can access filters independently of "this"
+    this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
   MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository'];
 
@@ -102,32 +114,117 @@
     this.movements = _.sortBy([].concat(this.movements, movements, newMovements), function(movement) {
       return movement.date.toISOString();
     });
+
+    // extract sources (for filters)
+    var sources = _.where(this.movements, {direction: 'in'});
+    sources = _.pluck(sources, 'source');
+    sources = _.uniq(sources);
+    sources = _.filter(sources, function(source) {
+      return !!source;
+    });
+    this.sources = _.sortBy(sources, 'name');
+
+    // extract destinations (for filters)
+    var destinations = _.where(this.movements, {direction: 'out'});
+    destinations = _.pluck(destinations, 'destination');
+    destinations = _.uniq(destinations);
+    destinations = _.filter(destinations, function(destination) {
+      return !!destination;
+    });
+    this.destinations = _.sortBy(destinations, 'name');
   };
 
-  var bySourceChart = null;
-  MainController.prototype.refreshCharts = function() {
-    if (bySourceChart) {
-      //<canvas id="bySourceChart" width="200" height="200"></canvas>
-      $('#bySourceChartContainer > canvas').remove();
-    }
-    $('#bySourceChartContainer').append('<canvas id="bySourceChart" width="200" height="200"></canvas>');
-    bySourceChart = new Chart($('#bySourceChartContainer > canvas').get(0).getContext("2d"));
+  MainController.prototype.buildMovementsFilterFunction = function() {
+    var filters = this.filters;
+    return function(movement, index) {
 
+      if (filters.source) {
+        if (movement.direction !== 'in') {
+          return false;
+        }
+        if (filters.source._id && movement.source !== filters.source) {
+          return false;
+        }
+        if (!filters.source._id && movement.source) {
+          return false;
+        }
+      }
+
+      if (filters.destination) {
+        if (movement.direction !== 'out') {
+          return false;
+        }
+        if (filters.destination._id && movement.destination !== filters.destination) {
+          return false;
+        }
+        if (!filters.destination._id && movement.destination) {
+          return false;
+        }
+      }
+
+      if (filters.category) {
+        if (filters.category._id && movement.category !== filters.category) {
+          return false;
+        }
+        if (!filters.category._id && movement.category) {
+          return false;
+        }
+      }
+
+      if (filters.account && movement.account !== filters.account) {
+        return false;
+      }
+
+      if (filters.direction && movement.direction !== filters.direction) {
+        return false;
+      }
+
+      return true;
+    }
+  };
+
+
+  var CHART_COLORS = [
+    '#0D8ECF',
+    '#48B040',
+    '#B0DE09',
+    '#FCD202',
+    '#FF6600',
+    '#CD0D74',
+    '#9900FF',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD',
+    '#DDDDDD'
+  ];
+  MainController.prototype.refreshCharts = function() {
+    this.buildIncomingBySourceChart();
+    this.buildOutgoingByCategoryChart();
+  };
+  /**
+   * Creates a chart inside the specified container, removing the one already in the container (if exists)
+   *
+   * @param containerId
+   */
+  MainController.prototype.createChart = function(containerId) {
+    var container = $('#'+containerId);
+    if (container.find('canvas').length > 0) {
+      container.find('canvas').remove();
+    }
+    var canvas = $('<canvas id="bySourceChart" width="200" height="200"></canvas>');
+    container.append(canvas);
+    return new Chart(canvas.get(0).getContext("2d"));
+  };
+  MainController.prototype.buildIncomingBySourceChart = function() {
     var movements = _.where(this.movements, {direction: 'in'});
     var sources = _.uniq(_.map(movements, function(movement) {
       return movement.source;
     }));
-    //console.log(sources);
 
-    var colors = [
-      '#0D8ECF',
-      '#48B040',
-      '#B0DE09',
-      '#FCD202',
-      '#FF6600',
-      '#CD0D74',
-      '#9900FF'
-    ];
     var data = _.sortBy(_.map(sources, function(source) {
       return {
         value: _.reduce(_.where(movements, {source: source}), function(sum, movement) {
@@ -137,17 +234,42 @@
             return sum + movement.amount;
           }
         }, 0),
-        //color: colors[index % colors.length],
-        //highlight: "#FF5A5E",
-        label: source ? source.name : 'Sconosciuto'
+        label: source ? source.name : 'Sconosciuta'
       };
     }), 'value').reverse();
     _.each(data, function(dataItem, index) {
-      dataItem.color = colors[index % colors.length]
+      dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
-    //console.log(data);
 
-    bySourceChart.Doughnut(data, {
+    this.createChart('incomingBySourceChartContainer').Doughnut(data, {
+      animation: false,
+      tooltipTemplate: 'label + " " + (value | number:2) + " €"'
+    });
+  };
+
+  MainController.prototype.buildOutgoingByCategoryChart = function() {
+    var movements = _.where(this.movements, {direction: 'out'});
+    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
+      return !!category;
+    });
+
+    var data = _.sortBy(_.map(categories, function (category) {
+      return {
+        value: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
+          if (movement.source && 'bank_account' === movement.destination.type) {
+            return sum;
+          } else {
+            return sum - movement.amount;
+          }
+        }, 0),
+        label: category ? category.name : 'Non impostata'
+      };
+    }), 'value').reverse();
+    _.each(data, function (dataItem, index) {
+      dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
+    });
+
+    this.createChart('outgoingByCategoryChartContainer').Doughnut(data, {
       animation: false,
       tooltipTemplate: 'label + " " + (value | number:2) + " €"'
     });

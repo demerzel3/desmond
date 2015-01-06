@@ -421,6 +421,7 @@
         movement.date = moment(record[0], 'DD/MM/YYYY', 'it');
         movement.executionDate = moment(record[1], 'DD/MM/YYYY', 'it');
         movement.description = 'ACQUISTO CARTA DI CREDITO\n'+record[2];
+        movement.direction = Movement.DIRECTION_OUT;
         movement.amount = -parseItalianFloat(record[3]);
         return movement;
       });

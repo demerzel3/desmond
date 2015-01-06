@@ -164,7 +164,8 @@
         if (movement.description.indexOf('BONIFICO A VS. FAVORE') > -1
           || movement.description.indexOf('BONIFICO A VOSTRO FAVORE') > -1
           || movement.description.indexOf('PRIMO BONIFICO') > -1) {
-          if (movement.description.toUpperCase().indexOf('GENTA GABRIELE') > -1) {
+          if (movement.description.toUpperCase().indexOf('GENTA GABRIELE') > -1
+            || movement.description.toUpperCase().indexOf('NPCREW S.R.L.') > -1) {
             movement.source = AccountsRepository.findByName('Gabriele');
           } else if (movement.description.toUpperCase().indexOf('DE CARLO BARBARA') > -1) {
             movement.source = AccountsRepository.findByName('Barbara');

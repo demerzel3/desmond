@@ -35,6 +35,90 @@
     </ul>
 
     <vbox grow="1">
+      <div class="panel panel-default filters">
+        <div class="panel-heading">Filtri</div>
+        <div class="panel-body">
+          Conto
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                    ng-class="{'btn-primary': ctrl.filters.account}">
+              {{ctrl.filters.account ? ctrl.filters.account.name : 'Tutti'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="ctrl.filters.account = null">Tutti</a></li>
+              <li class="divider"></li>
+              <li ng-repeat="account in ctrl.accounts.bankAccounts">
+                <a href="" ng-click="ctrl.filters.account = account">{{account.name}}</a>
+              </li>
+            </ul>
+          </div>
+          &emsp;
+          Origine
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                ng-class="{'btn-primary': ctrl.filters.source}">
+              {{ctrl.filters.source ? ctrl.filters.source.name : 'Tutte'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="ctrl.filters.source = null">Tutte</a></li>
+              <li class="divider"></li>
+              <li><a href="" ng-click="ctrl.filters.source = {name: 'Sconosciuta'}">Sconosciuta</a></li>
+              <li class="divider"></li>
+              <li ng-repeat="source in ctrl.sources">
+                <a href="" ng-click="ctrl.filters.source = source">{{source.name}}</a>
+              </li>
+            </ul>
+          </div>
+          &emsp;
+          Destinazione
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                ng-class="{'btn-primary': ctrl.filters.destination}">
+              {{ctrl.filters.destination ? ctrl.filters.destination.name : 'Tutte'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="ctrl.filters.destination = null">Tutte</a></li>
+              <li class="divider"></li>
+              <li><a href="" ng-click="ctrl.filters.destination = {name: 'Sconosciuta'}">Sconosciuta</a></li>
+              <li class="divider"></li>
+              <li ng-repeat="destination in ctrl.destinations">
+                <a href="" ng-click="ctrl.filters.destination = destination">{{destination.name}}</a>
+              </li>
+            </ul>
+          </div>
+          &emsp;
+          Categoria
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                ng-class="{'btn-primary': ctrl.filters.category}">
+              {{ctrl.filters.category ? ctrl.filters.category.name : 'Tutte'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="ctrl.filters.category = null">Tutte</a></li>
+              <li class="divider"></li>
+              <li><a href="" ng-click="ctrl.filters.category = {name: 'Non assegnata'}">Non assegnata</a></li>
+              <li class="divider"></li>
+              <li ng-repeat="category in ctrl.categories.all">
+                <a href="" ng-click="ctrl.filters.category = category">{{category.name}}</a>
+              </li>
+            </ul>
+          </div>
+          &emsp;
+          Tipo movimento
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                ng-class="{'btn-primary': ctrl.filters.direction}">
+              {{ctrl.filters.direction ? (ctrl.filters.direction === 'in' ? 'Entrate' : 'Uscite') : 'Tutti'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="ctrl.filters.direction = null">Tutti</a></li>
+              <li class="divider"></li>
+              <li><a href="" ng-click="ctrl.filters.direction = 'in'">Entrate</a></li>
+              <li><a href="" ng-click="ctrl.filters.direction = 'out'">Uscite</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
       {{ctrl.movements.length}} movimenti
       <table class="table table-bordered">
         <tr>
@@ -46,7 +130,7 @@
           <th>Importo (EUR)</th>
           <th></th>
         </tr>
-        <tr ng-repeat="movement in ctrl.movements" ng-class="{replaceable: movement.replaceable}">
+        <tr ng-repeat="movement in ctrl.movements | filter:ctrl.movementsFilterFunction" ng-class="{replaceable: movement.replaceable}">
           <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
@@ -62,19 +146,26 @@
           <td>{{movement.category.name}}</td>
           <td class="text-right">{{movement.amount | number:2}} €</td>
           <td style="white-space: nowrap">
-            <i class="fa fa-arrow-left movement-in" ng-if="movement.direction === 'in'"></i>
-            <i class="fa fa-arrow-right movement-out" ng-if="movement.direction === 'out'"></i>
-            <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
-            <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
-            IN{{movement.source.name}}
+            <div ng-if="movement.direction === 'in'">
+              <i class="fa fa-arrow-left movement-in"></i>
+              <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
+            </div>
+            <div ng-if="movement.direction === 'out'">
+              <i class="fa fa-arrow-right movement-out"></i>
+              <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
+            </div>
           </td>
         </tr>
       </table>
     </vbox>
 
     <vbox shrink="0" grow="0" class="text-center">
-      <strong>Per fonte</strong>
-      <div id="bySourceChartContainer">
+      <strong>Origine patrimonio</strong>
+      <div id="incomingBySourceChartContainer">
+      </div>
+      <hr/>
+      <strong>Categorie di spesa</strong>
+      <div id="outgoingByCategoryChartContainer">
       </div>
     </vbox>
   </hbox>
