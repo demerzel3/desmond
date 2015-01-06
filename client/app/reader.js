@@ -32,6 +32,7 @@
   ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
   ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
   ImportedDocument.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
+  ImportedDocument.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
 
 
   var StringArrayConsumer = function(input) {
@@ -429,12 +430,57 @@
     });
   };
 
+
+  var IWPowerListaMovimentiReader = function(ExcelReader, Movement) {
+    this.ExcelReader = ExcelReader;
+    this.Movement = Movement;
+  };
+  IWPowerListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  IWPowerListaMovimentiReader.prototype.read = function(file) {
+    var Movement = this.Movement;
+    return this.ExcelReader.getFirstSheet(file).then(function(rows) {
+      var reading = false;
+      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_IWPOWER);
+      _.each(rows, function(row) {
+        if (row.length < 5) {
+          return;
+        }
+        if (!row[0] || row[0].trim().length == 0) {
+          return;
+        }
+        if (row[0] === 'Estrazione Dal' && row[2] === 'Al') {
+          document.date = moment(row[1], 'DD_MM_YYYY');
+        }
+        if (!reading
+          && angular.equals(row, ["Data", "Valuta", "[#IMPORTO_IN]", "[#IMPORTO_OUT]", "Causale"])) {
+          reading = true;
+          return;
+        }
+        if (!reading) {
+          return;
+        }
+
+        // read a record into a movement
+        var movement = new Movement();
+        movement.bankId = null;
+        movement.date = moment(row[0], 'DD/MM/YY', 'it');
+        movement.executionDate = moment(row[1], 'DD/MM/YY', 'it');
+        movement.description = row[4];
+        movement.direction = (row[2].length > 0) ? Movement.DIRECTION_IN : Movement.DIRECTION_OUT;
+        movement.amount = (row[2].length > 0) ? parseFloat(row[2]) : -parseFloat(row[3]);
+        document.movements.push(movement);
+      });
+      return document;
+    });
+  };
+
   var Reader = angular.module('Desmond.Reader', []);
   Reader.service('PDFReader', PDFReader);
   Reader.service('ExcelReader', ExcelReader);
   Reader.service('IWBankEstrattoContoReader', IWBankEstrattoContoReader);
   Reader.service('IWBankListaMovimentiReader', IWBankListaMovimentiReader);
   Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
+  Reader.service('IWPowerListaMovimentiReader', IWPowerListaMovimentiReader);
   Reader.service('BNLListaMovimentiReader', BNLListaMovimentiReader);
 
 })(window.jQuery, window.angular);

@@ -32,10 +32,13 @@
     });
 
     RulesContainer.rule('Interessi', function(movement) {
-      if (movement.description.indexOf('GIRO COMPETENZE') > -1
-        || movement.description.indexOf('COMPETENZE SU C/C') > -1) {
-        movement.category = CategoriesRepository.all['investimenti'];
-        movement.source = AccountsRepository.moneyAccount;
+      if (movement.direction === Movement.DIRECTION_IN && (
+        movement.description.indexOf('COMPETENZE LIQUIDAZIONE') > -1
+        || movement.description.indexOf('COMPETENZE BONUS') > -1
+        || movement.description.indexOf('COMPETENZE AL CONTO') > -1
+        || movement.description.indexOf('COMPETENZE SU C/C') > -1)) {
+        //movement.category = CategoriesRepository.all['investimenti'];
+        movement.source = AccountsRepository.findByName('Interessi');
         return true;
       }
     });
@@ -141,8 +144,7 @@
 
     RulesContainer.rule('Trasferimenti', function(movement) {
       if (movement.account.bank === 'bnl') {
-        if (movement.description.indexOf('VERSAMENTO DI CONTANTE O ASSIMILATI') > -1
-          || movement.description.trim() == 'BONIFICO SEPA A VOSTRO FAVORE') {
+        if (movement.description.indexOf('VERSAMENTO DI CONTANTE O ASSIMILATI') > -1) {
           movement.source = AccountsRepository.moneyAccount;
           return true;
         }
@@ -179,29 +181,29 @@
           }
           return true;
         }
-        if (movement.description.indexOf('GIROCONTO') > -1) {
+        if (movement.description.indexOf('GIROCONTO') > -1
+          || movement.description.indexOf('GIRO COMPETENZE') > -1) {
           if (movement.description.indexOf('CAPITALE A SCADENZA') > -1
             || movement.description.indexOf('TRASFERIMENTO IN') > -1
             || movement.description.indexOf('TRASFERIMENTO OUT')) {
             var iwPower = AccountsRepository.findByName('IWPower');
-            // there is no movements source for IWPower, so its movements are built from the movements of the main IWBank account
-            var invMovement = angular.copy(movement);
-            invMovement.account = iwPower;
-            invMovement.direction = (Movement.DIRECTION_IN === movement.direction) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
-            invMovement.amount = -movement.amount;
             if (Movement.DIRECTION_IN === movement.direction) {
               movement.source = iwPower;
-              movement.sourceMovement = invMovement;
-              invMovement.direction = Movement.DIRECTION_OUT;
-              invMovement.destination = movement.account;
-              invMovement.destinationMovement = movement;
             } else {
               movement.destination = iwPower;
-              movement.destinationMovement = invMovement;
-              invMovement.direction = Movement.DIRECTION_IN;
-              invMovement.source = movement.account;
-              invMovement.sourceMovement = movement;
             }
+          }
+          return true;
+        }
+      } else if (movement.account.bank === 'iwpower') {
+        console.log(movement.description);
+        if (movement.description.indexOf('GIROCONTO') > -1
+          || movement.description.indexOf('GIRO COMPETENZE AL CONTO') > -1) {
+          var iwBank = AccountsRepository.findByName('IWBank');
+          if (Movement.DIRECTION_IN === movement.direction) {
+            movement.source = iwBank;
+          } else {
+            movement.destination = iwBank;
           }
           return true;
         }

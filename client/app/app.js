@@ -43,12 +43,14 @@
         }
       } else if ('bnl' === account.bank) {
         if (file.type == 'application/pdf') {
-          ctrl.importFile(account, file, 'BNLEstrattoContoReader');
         } else {
           ctrl.importFile(account, file, 'BNLListaMovimentiReader');
         }
-      } else if ('chebanca' === account.bank) {
-
+      } else if ('iwpower' === account.bank) {
+        if (file.type == 'application/pdf') {
+        } else {
+          ctrl.importFile(account, file, 'IWPowerListaMovimentiReader');
+        }
       }
     });
   };
@@ -256,7 +258,7 @@
     var data = _.sortBy(_.map(categories, function (category) {
       return {
         value: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
-          if (movement.source && 'bank_account' === movement.destination.type) {
+          if (movement.destination && 'bank_account' === movement.destination.type) {
             return sum;
           } else {
             return sum - movement.amount;
