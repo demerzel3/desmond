@@ -7,6 +7,7 @@
     this.description = null;
     this.direction = null;
     this.amount = 0;
+    this.deleted = false;
 
     // links
     this.account = null;
@@ -85,7 +86,7 @@
     // load movements only after accounts and categories
     var repo = this;
     this.loaded = $q.all([CategoriesRepository.loaded, AccountsRepository.loaded]).then(function() {
-      repo.movementsEndpoint.getList({pagesize: 1000}/*{filter: {hidden: false}}*/).then(function(movements) {
+      repo.movementsEndpoint.getList({pagesize: 1000, filter: {deleted: false}}).then(function(movements) {
         repo.all = _.sortBy(movements, function(movement) {
           return movement.date.toISOString();
         });
