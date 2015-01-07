@@ -27,16 +27,8 @@
   </hbox>
 
   <hbox>
-    <ul class="list-group">
-      <li class="list-group-item" ng-repeat="category in ctrl.categories.all">
-        {{category.name}}<br/>
-        <small class="text-muted">{{category._id}}</small>
-      </li>
-    </ul>
-
     <vbox grow="1">
       <div class="panel panel-default filters">
-        <div class="panel-heading">Filtri</div>
         <div class="panel-body">
           Conto
           <div class="btn-group">
@@ -120,6 +112,7 @@
         </div>
       </div>
       {{ctrl.movements.all.length}} movimenti
+      <div ng-if="ctrl.selectedItemsCount > 0">{{ctrl.selectedItemsCount}} Selezionati</div>
       <table class="table table-bordered">
         <tr>
           <th>Conto</th>
@@ -130,8 +123,20 @@
           <th>Importo (EUR)</th>
           <th></th>
         </tr>
-        <tr ng-repeat="movement in ctrl.movements.all | filter:ctrl.movementsFilterFunction track by movement._id" ng-class="{replaceable: movement.replaceable}">
-          <td><img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/></td>
+        <tr ng-repeat="movement in ctrl.movements.all | filter:ctrl.movementsFilterFunction track by movement._id"
+            ng-class="{replaceable: movement.replaceable, selected: ctrl.selectedItems[movement._id]}">
+          <td class="account">
+            <div ng-if="ctrl.selectedItems[movement._id]"
+                 ng-click="ctrl.selectedItems[movement._id] = false; ctrl.selectedItemsCount--">
+              <i class="fa fa-check-square-o"></i>
+            </div>
+            <div ng-if="!ctrl.selectedItems[movement._id]"
+                 class="selectable-box"
+                 ng-click="ctrl.selectedItems[movement._id] = true; ctrl.selectedItemsCount++">
+              <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
+              <i class="fa fa-square-o"></i>
+            </div>
+          </td>
           <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
           <td>

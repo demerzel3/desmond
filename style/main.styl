@@ -33,6 +33,35 @@ img.account {
   color: #bd0000
 }
 
-table tr.replaceable td {
-  background-color: #fff884;
+table {
+  tr.replaceable > td {
+    background-color: #fff884;
+  }
+  tr.selected > td {
+    background-color: #99cbe7;
+  }
+  td.account {
+    text-align: center;
+    & > div {
+      cursor: pointer;
+    }
+    i {
+      font-size: 28px;
+      line-height: 34px;
+    }
+  }
+}
+
+.selectable-box {
+  i {
+    display: none;
+  }
+  &:hover {
+    img {
+      display: none
+    }
+    i {
+      display: inline-block
+    }
+  }
 }

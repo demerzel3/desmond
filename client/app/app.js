@@ -17,6 +17,8 @@
       category: null,
       direction: null
     };
+    this.selectedItems = [];
+    this.selectedItemsCount = 0;
 
     var ctrl = this;
     $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
