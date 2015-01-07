@@ -144,7 +144,7 @@
             </div>
           </td>
           <td>{{movement.category.name}}</td>
-          <td class="text-right">{{movement.amount | number:2}} €</td>
+          <td class="text-right" style="white-space: nowrap">{{movement.amount | number:2}} €</td>
           <td style="white-space: nowrap">
             <div ng-if="movement.direction === 'in'">
               <i class="fa fa-arrow-left movement-in"></i>

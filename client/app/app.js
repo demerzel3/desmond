@@ -23,6 +23,7 @@
       if (movements === oldValue) {
         return;
       }
+      ctrl.updateFilters();
       ctrl.refreshCharts();
     });
 
@@ -104,10 +105,10 @@
 
   MainController.prototype.appendMovements = function(movements) {
     this.applyAllRules(movements);
-
     this.movements.add(movements);
+  };
 
-    /*
+  MainController.prototype.updateFilters = function() {
     // extract sources (for filters)
     var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
@@ -125,7 +126,6 @@
       return !!destination;
     });
     this.destinations = _.sortBy(destinations, 'name');
-    */
   };
 
   MainController.prototype.buildMovementsFilterFunction = function() {
@@ -291,7 +291,8 @@
   }]);
 
   Desmond.config(['RestangularProvider', function(RestangularProvider) {
-    RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');
+    //RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');
+    RestangularProvider.setBaseUrl('http://192.168.1.200:8123/desmond');
     RestangularProvider.setRestangularFields({id: '_id'});
 
     // extract data from the list response of restheart

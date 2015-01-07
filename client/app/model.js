@@ -109,7 +109,7 @@
     var promises = _.map(movements, function(movement) {
       return movementsEndpoint.post(movement);
     });
-    this.$q.all(promises).then(function(results) {
+    return this.$q.all(promises).then(function(results) {
       console.log("POST results", results);
       return _.pluck(results, '_id');
     }).then(function(newIds) {
