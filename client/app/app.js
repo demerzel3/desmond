@@ -17,8 +17,8 @@
       category: null,
       direction: null
     };
-    this.selectedItems = [];
-    this.selectedItemsCount = 0;
+    this.selectedItems = {};
+    this.selectedItems.length = 0;
 
     var ctrl = this;
     $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
@@ -33,6 +33,39 @@
     this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
   MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
+
+  MainController.prototype.deselectItem = function(item) {
+    this.selectedItems[item._id] = false;
+    this.selectedItems.length--;
+  };
+
+  MainController.prototype.selectItem = function(item) {
+    this.selectedItems[item._id] = true;
+    this.selectedItems.length++;
+  };
+
+  MainController.prototype.toggleSelection = function(item) {
+    if (this.isSelected(item)) {
+      this.deselectItem(item);
+    } else {
+      this.selectItem(item);
+    }
+  };
+
+  MainController.prototype.deselectAll = function() {
+    this.selectedItems = {length: 0};
+  };
+
+  MainController.prototype.isSelected = function(item) {
+    return this.selectedItems[item._id];
+  };
+
+  MainController.prototype.getSelectedItems = function() {
+    var selection = this.selectedItems;
+    return _.filter(this.movements, function(movement) {
+      return selection[movement._id];
+    });
+  };
 
   MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
@@ -273,6 +306,7 @@
 
   var Desmond = angular.module('Desmond', [
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
+    'ui.utils',
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model'
   ]);
 
@@ -325,5 +359,9 @@
   }]);
 
   Desmond.controller('MainController', MainController);
+
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
 
 })(window.jQuery, window.angular);

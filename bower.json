@@ -30,6 +30,8 @@
     "sweetalert": "~0.3.3",
     "js-xls": "~0.7.2",
     "papaparse.js": "~4.0.7",
-    "chartjs": "~1.0.0-beta"
+    "chartjs": "~1.0.0-beta",
+    "angular-ui-utils": "bower",
+    "material-design-iconic-font": "~1.1.1"
   }
 }
