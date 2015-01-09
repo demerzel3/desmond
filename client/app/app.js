@@ -1,5 +1,8 @@
 (function($, angular) {
 
+  //var DB_BASE_URL = 'http://192.168.1.200:8123/desmond';
+  var DB_BASE_URL = 'http://192.168.1.200:8123/desmond_dev';
+
   var MainController = function($scope, $q, $injector, RulesContainer, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
@@ -7,6 +10,7 @@
     this.categories = CategoriesRepository;
     this.accounts = AccountsRepository;
     this.movements = MovementsRepository;
+    this.filteredMovements = null;
     this.files = [];
     this.sources = [];
     this.destinations = [];
@@ -17,8 +21,7 @@
       category: null,
       direction: null
     };
-    this.selectedItems = {};
-    this.selectedItems.length = 0;
+    this.selectedItems = [];
 
     var ctrl = this;
     $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
@@ -27,45 +30,20 @@
       }
       ctrl.updateFilters();
       ctrl.refreshCharts();
+      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction);
+    });
+
+    $scope.$watchCollection('ctrl.filters', function(newFilters, oldFilters) {
+      if (newFilters === oldFilters) {
+        return;
+      }
+      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction);
     });
 
     // gets executed under the global scope, must be defined in a place where it can access filters independently of "this"
     this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
   MainController.$inject = ['$scope', '$q', '$injector', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
-
-  MainController.prototype.deselectItem = function(item) {
-    this.selectedItems[item._id] = false;
-    this.selectedItems.length--;
-  };
-
-  MainController.prototype.selectItem = function(item) {
-    this.selectedItems[item._id] = true;
-    this.selectedItems.length++;
-  };
-
-  MainController.prototype.toggleSelection = function(item) {
-    if (this.isSelected(item)) {
-      this.deselectItem(item);
-    } else {
-      this.selectItem(item);
-    }
-  };
-
-  MainController.prototype.deselectAll = function() {
-    this.selectedItems = {length: 0};
-  };
-
-  MainController.prototype.isSelected = function(item) {
-    return this.selectedItems[item._id];
-  };
-
-  MainController.prototype.getSelectedItems = function() {
-    var selection = this.selectedItems;
-    return _.filter(this.movements, function(movement) {
-      return selection[movement._id];
-    });
-  };
 
   MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
@@ -307,7 +285,7 @@
   var Desmond = angular.module('Desmond', [
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
     'ui.utils',
-    'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model'
+    'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
   ]);
 
   Desmond.filter('total', function() {
@@ -327,8 +305,7 @@
   }]);
 
   Desmond.config(['RestangularProvider', function(RestangularProvider) {
-    //RestangularProvider.setBaseUrl('http://127.0.0.1:8123/desmond');
-    RestangularProvider.setBaseUrl('http://192.168.1.200:8123/desmond');
+    RestangularProvider.setBaseUrl(DB_BASE_URL);
     RestangularProvider.setRestangularFields({id: '_id'});
 
     // extract data from the list response of restheart

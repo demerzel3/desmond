@@ -77,22 +77,18 @@ table.table-movements {
   tbody>tr>td {
     vertical-align middle
   }
-  td.selection {
+  td.selection, th.selection {
     padding 0
     text-align center
-    i {
-      cursor: pointer;
-      line-height: 32px;
-    }
-    .fa-check-square-o {
-      position: relative;
-      left: 2px;
-    }
   }
-  td.account {
+  td.selection i {
+    cursor: pointer;
+    line-height: 32px;
+  }
+  td.account, th.account {
     text-align: center;
   }
-  td.amount {
+  td.amount, th.amount {
     text-align right
     white-space nowrap
   }

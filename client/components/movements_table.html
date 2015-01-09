@@ -1,0 +1,46 @@
+<table class="table table-bordered table-movements">
+  <tr>
+    <th class="selection"><i class="md md-check md-lg"></i></th>
+    <th class="account">Conto</th>
+    <th>Data</th>
+    <th>Data Valuta</th>
+    <th>Causale</th>
+    <th>Categoria</th>
+    <th class="amount">Importo (EUR)</th>
+    <th class="direction"></th>
+  </tr>
+  <tr ng-repeat="movement in ctrl.movements track by movement._id"
+      ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
+    <td class="selection">
+      <i class="md md-2x"
+         ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"
+         ng-click="ctrl.toggleSelection(movement)"></i>
+    </td>
+    <td class="account">
+      <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
+    </td>
+    <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
+    <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
+    <td>
+      <span ng-bind-html="movement.description|nl2br"></span>
+      <div ng-if="movement.replaceable && ctrl.replaceMovementEnabled=='true'" ng-file-drop class="drop-box"
+           ng-file-change="ctrl.onReplaceMovement({$movement: movement, $file: $files[0]})"
+           drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+           multiple="false" allow-dir="false" accept="{{movement.replaceable.accept}}">
+        {{movement.replaceable.info}}
+      </div>
+    </td>
+    <td>{{movement.category.name}}</td>
+    <td class="amount">{{movement.amount | number:2}} €</td>
+    <td class="direction">
+      <div ng-if="movement.direction === 'in'">
+        <i class="fa fa-arrow-left movement-in"></i>
+        <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
+      </div>
+      <div ng-if="movement.direction === 'out'">
+        <i class="fa fa-arrow-right movement-out"></i>
+        <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
+      </div>
+    </td>
+  </tr>
+</table>

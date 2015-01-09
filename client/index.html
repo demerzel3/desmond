@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>Desmond</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link href="components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="components/material-design-iconic-font/css/material-design-iconic-font.min.css" rel="stylesheet"/>
-  <link href="components/fontawesome/css/font-awesome.min.css" rel="stylesheet"/>
-  <link href="components/sweetalert/lib/sweet-alert.css" rel="stylesheet"/>
-  <link href="components/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
-  <link href="components/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
+  <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="lib/material-design-iconic-font/css/material-design-iconic-font.min.css" rel="stylesheet"/>
+  <link href="lib/fontawesome/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="lib/sweetalert/lib/sweet-alert.css" rel="stylesheet"/>
+  <link href="lib/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
+  <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
 </head>
 <body vbox ng-app="Desmond" ng-controller="MainController as ctrl">
@@ -112,7 +112,7 @@
           </div>
         </div>
       </div>
-      {{ctrl.movements.all.length}} movimenti
+      {{ctrl.filteredMovements.length}} movimenti
 
       <div class="panel panel-selection" ng-show="ctrl.selectedItems.length > 0" ui-scrollfix>
         <div class="panel-body" hbox gap="15">
@@ -125,57 +125,16 @@
             Unisci
           </button>
           <div grow="1" class="text-right">
-            <div class="btn btn-link" ng-click="ctrl.deselectAll()"><i class="md md-close md-lg"></i></div>
+            <a href ng-click="ctrl.deselectAll()"><i class="md md-close md-lg"></i></a>
           </div>
         </div>
       </div>
 
-      <table class="table table-bordered table-movements">
-        <tr>
-          <th><i class="md md-check md-lg"></i></th>
-          <th>Conto</th>
-          <th>Data</th>
-          <th>Data Valuta</th>
-          <th>Causale</th>
-          <th>Categoria</th>
-          <th>Importo (EUR)</th>
-          <th></th>
-        </tr>
-        <tr ng-repeat="movement in ctrl.movements.all | filter:ctrl.movementsFilterFunction track by movement._id"
-            ng-class="{replaceable: movement.replaceable, selected: ctrl.isSelected(movement)}">
-          <td class="selection">
-            <i class="md md-2x"
-               ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"
-               ng-click="ctrl.toggleSelection(movement)"></i>
-          </td>
-          <td class="account">
-            <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
-          </td>
-          <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
-          <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
-          <td>
-            <span ng-bind-html="movement.description|nl2br"></span>
-            <div ng-if="movement.replaceable" ng-file-drop class="drop-box"
-                 ng-file-change="ctrl.replaceMovement(movement, $files[0])"
-                 drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-                 multiple="false" allow-dir="false" accept="{{ctrl.replaceable.accept}}">
-              {{movement.replaceable.info}}
-            </div>
-          </td>
-          <td>{{movement.category.name}}</td>
-          <td class="amount">{{movement.amount | number:2}} €</td>
-          <td class="direction">
-            <div ng-if="movement.direction === 'in'">
-              <i class="fa fa-arrow-left movement-in"></i>
-              <img ng-if="movement.source" class="account" ng-src="{{movement.source.avatarUrl}}" width="50" height="50" alt="{{movement.source.name}}"/>
-            </div>
-            <div ng-if="movement.direction === 'out'">
-              <i class="fa fa-arrow-right movement-out"></i>
-              <img ng-if="movement.destination" class="account" ng-src="{{movement.destination.avatarUrl}}" width="50" height="50" alt="{{movement.destination.name}}"/>
-            </div>
-          </td>
-        </tr>
-      </table>
+      <desmond-movements-table movements="ctrl.filteredMovements"
+                               selected-items="ctrl.selectedItems"
+                               replace-movement-enabled="false"
+                               on-replace-movement="ctrl.replaceMovement($movement, $file)"> <!--  | filter:ctrl.movementsFilterFunction -->
+      </desmond-movements-table>
     </vbox>
 
     <vbox shrink="0" grow="0" class="text-center">
@@ -189,22 +148,23 @@
     </vbox>
   </hbox>
 
-  <script src="components/chartjs/Chart.js"></script>
-  <script src="components/moment/min/moment-with-locales.min.js"></script>
-  <script src="components/sweetalert/lib/sweet-alert.min.js"></script>
-  <script src="components/jquery/dist/jquery.min.js"></script>
-  <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
-  <script src="components/lodash/dist/lodash.min.js"></script>
-  <script src="components/pdfjs-bower/dist/pdf.js"></script>
-  <script src="components/js-xls/dist/xls.full.min.js"></script>
-  <script src="components/papaparse.js/papaparse.min.js"></script>
-  <script src="components/angular/angular.min.js"></script>
-  <script src="components/angular-sanitize/angular-sanitize.min.js"></script>
-  <script src="components/angular-ui-utils/ui-utils.min.js"></script>
-  <script src="components/angular-layout/dist/angular-layout.min.js"></script>
-  <script src="components/ng-file-upload/angular-file-upload.min.js"></script>
-  <script src="components/angular-nl2br/angular-nl2br.min.js"></script>
-  <script src="components/restangular/dist/restangular.min.js"></script>
+  <script src="lib/chartjs/Chart.js"></script>
+  <script src="lib/moment/min/moment-with-locales.min.js"></script>
+  <script src="lib/sweetalert/lib/sweet-alert.min.js"></script>
+  <script src="lib/jquery/dist/jquery.min.js"></script>
+  <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="lib/lodash/dist/lodash.min.js"></script>
+  <script src="lib/pdfjs-bower/dist/pdf.js"></script>
+  <script src="lib/js-xls/dist/xls.full.min.js"></script>
+  <script src="lib/papaparse.js/papaparse.min.js"></script>
+  <script src="lib/angular/angular.min.js"></script>
+  <script src="lib/angular-sanitize/angular-sanitize.min.js"></script>
+  <script src="lib/angular-ui-utils/ui-utils.min.js"></script>
+  <script src="lib/angular-layout/dist/angular-layout.min.js"></script>
+  <script src="lib/ng-file-upload/angular-file-upload.min.js"></script>
+  <script src="lib/angular-nl2br/angular-nl2br.min.js"></script>
+  <script src="lib/restangular/dist/restangular.min.js"></script>
+  <script src="app/component.js"></script>
   <script src="app/model.js"></script>
   <script src="app/service.js"></script>
   <script src="app/rules.js"></script>

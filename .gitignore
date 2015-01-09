@@ -19,5 +19,5 @@ build/Release
 node_modules
 # Users Environment Variables
 .lock-wscript
-client/components
+client/lib
 restheart-0.9.7

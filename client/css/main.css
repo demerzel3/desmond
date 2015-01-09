@@ -53,7 +53,8 @@ table.table-movements tr.selected > td {
 table.table-movements tbody>tr>td {
   vertical-align: middle;
 }
-table.table-movements td.selection {
+table.table-movements td.selection,
+table.table-movements th.selection {
   padding: 0;
   text-align: center;
 }
@@ -61,14 +62,12 @@ table.table-movements td.selection i {
   cursor: pointer;
   line-height: 32px;
 }
-table.table-movements td.selection .fa-check-square-o {
-  position: relative;
-  left: 2px;
-}
-table.table-movements td.account {
+table.table-movements td.account,
+table.table-movements th.account {
   text-align: center;
 }
-table.table-movements td.amount {
+table.table-movements td.amount,
+table.table-movements th.amount {
   text-align: right;
   white-space: nowrap;
 }
