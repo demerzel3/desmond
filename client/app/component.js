@@ -2,12 +2,24 @@
 
   var Component = angular.module('Desmond.Component', []);
 
-  var DesmondMovementsTableController = function() {
+  var DesmondMovementsTableController = function($scope) {
     this.selectedItems = [];
     this.selectedItemsMap = {};
 
-    //this.onReplaceMovement = null;
+    var ctrl = this;
+    $scope.$watch('ctrl.selectedItems', function(selectedItems, oldSelectedItems) {
+      if (selectedItems === oldSelectedItems) {
+        return;
+      }
+      // build a map from the list of selected items
+      var map = {};
+      _.each(selectedItems, function(selectedItem) {
+        map[selectedItem._id] = true;
+      });
+      ctrl.selectedItemsMap = map;
+    });
   };
+  DesmondMovementsTableController.$inject = ['$scope'];
 
   DesmondMovementsTableController.prototype.deselectItem = function(item) {
     this.selectedItemsMap[item._id] = false;
