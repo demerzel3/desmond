@@ -40,6 +40,10 @@
     }
   };
 
+  DesmondMovementsTableController.prototype.selectAll = function() {
+    this.selectedItems = [].concat(this.movements);
+  };
+
   DesmondMovementsTableController.prototype.deselectAll = function() {
     this.selectedItems = [];
     this.selectedItemsMap = {};

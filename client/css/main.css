@@ -33,12 +33,12 @@ img.account {
   border-radius: 0;
   box-shadow: none;
   line-height: 34px;
+  z-index: 100;
 }
 .panel.panel-selection.ui-scrollfix {
   position: fixed;
   top: 0;
   border-top-color: #fff;
-  z-index: 100;
 }
 table.table-movements tbody>tr>th {
   white-space: nowrap;

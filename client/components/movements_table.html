@@ -1,6 +1,18 @@
 <table class="table table-bordered table-movements">
   <tr>
-    <th class="selection"><i class="md md-check md-lg"></i></th>
+    <th class="selection">
+      <span class="dropdown" dropdown>
+        <a href class="dropdown-toggle" dropdown-toggle>
+          <i class="md md-check md-lg"></i>
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a href ng-click="ctrl.selectAll()">Seleziona tutti</a>
+            <a href ng-click="ctrl.deselectAll()">Seleziona nessuno</a>
+          </li>
+        </ul>
+      </span>
+    </th>
     <th class="account">Conto</th>
     <th>Data</th>
     <th>Data Valuta</th>
@@ -11,7 +23,7 @@
   </tr>
   <tr ng-repeat="movement in ctrl.movements"
       ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
-    <td class="selection"> <!--  track by movement._id -->
+    <td class="selection">
       <i class="md md-2x"
          ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"
          ng-click="ctrl.toggleSelection(movement)"></i>
