@@ -1,3 +1,6 @@
+.modal-backdrop {
+  bottom: 0;
+}
 .drop-box {
   padding: 20px;
   border: dashed 1px #ccc;

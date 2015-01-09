@@ -32,6 +32,7 @@
     "papaparse.js": "~4.0.7",
     "chartjs": "~1.0.0-beta",
     "angular-ui-utils": "bower",
-    "material-design-iconic-font": "~1.1.1"
+    "material-design-iconic-font": "~1.1.1",
+    "angular-bootstrap": "~0.12.0"
   }
 }

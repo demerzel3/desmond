@@ -1,0 +1,18 @@
+<div class="modal-header text-right">
+  <div class="text-right" ui-scrollfix>
+    <button class="btn btn-primary btn-lg" ng-click="ctrl.ok()">
+      Importa {{ctrl.selectedItems.length}} movimenti <i class="md md-arrow-forward md-lg"></i>
+    </button>
+  </div>
+</div>
+<div class="modal-body">
+  <desmond-movements-table movements="ctrl.movements"
+                           selected-items="ctrl.selectedItems">
+  </desmond-movements-table>
+</div>
+<!--
+<div class="modal-footer">
+
+  <button class="btn btn-warning" ng-click="ctrl.cancel()">Cancel</button>
+</div>
+-->

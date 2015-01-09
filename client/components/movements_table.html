@@ -9,9 +9,9 @@
     <th class="amount">Importo (EUR)</th>
     <th class="direction"></th>
   </tr>
-  <tr ng-repeat="movement in ctrl.movements track by movement._id"
+  <tr ng-repeat="movement in ctrl.movements"
       ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
-    <td class="selection">
+    <td class="selection"> <!--  track by movement._id -->
       <i class="md md-2x"
          ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"
          ng-click="ctrl.toggleSelection(movement)"></i>
