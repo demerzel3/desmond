@@ -196,7 +196,7 @@
           return true;
         }
       } else if (movement.account.bank === 'iwpower') {
-        console.log(movement.description);
+        //console.log(movement.description);
         if (movement.description.indexOf('GIROCONTO') > -1
           || movement.description.indexOf('GIRO COMPETENZE AL CONTO') > -1) {
           var iwBank = AccountsRepository.findByName('IWBank');

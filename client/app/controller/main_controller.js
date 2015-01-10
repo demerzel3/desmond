@@ -1,10 +1,13 @@
 (function($, angular) {
 
-  var MainController = function($scope, $q, $injector, $modal, RulesContainer, CategoriesRepository, AccountsRepository, MovementsRepository) {
+  var MainController = function($scope, $q, $injector, $modal, FileHasher, RulesContainer,
+                                DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
+    this.FileHasher = FileHasher;
     this.RulesContainer = RulesContainer;
+    this.documents = DocumentsRepository;
     this.categories = CategoriesRepository;
     this.accounts = AccountsRepository;
     this.movements = MovementsRepository;
@@ -41,11 +44,13 @@
     // gets executed under the global scope, must be defined in a place where it can access filters independently of "this"
     this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
-  MainController.$inject = ['$scope', '$q', '$injector', '$modal', 'RulesContainer', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
+  MainController.$inject = [
+    '$scope', '$q', '$injector', '$modal', 'FileHasher', 'RulesContainer',
+    'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
 
   MainController.prototype.importFiles = function(account, files) {
     var ctrl = this;
-    console.log('Importing files for ', account.name);
+    //console.log('Importing files for ', account.name);
     _.each(files, function(file) {
       if ('iwbank' === account.bank) {
         if (file.type == 'application/pdf') {
@@ -68,9 +73,35 @@
   };
 
   MainController.prototype.readFile = function(file, readerName) {
+    var $q = this.$q;
     var reader = this.$injector.get(readerName);
-    return reader.read(file).then(function(document) {
-      return document;
+    var documents = this.documents;
+    return this.FileHasher.hashFile(file).then(function(file) {
+      var existingDocument = documents.findByHash(file.hash);
+      if (!existingDocument) {
+        return file;
+      }
+      return $q(function(resolve, reject) {
+        swal({
+          title: "File già importato",
+          html: 'Sembra che tu abbia già importato <strong>' + file.name + '</strong>, eseguire di nuovo l\'importazione potrebbe creare movimenti duplicati.\n'
+            + 'Come vuoi procedere?',
+          type: "info",
+          allowOutsideClick: true,
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "Importa ugualmente",
+          cancelButtonText: "Annulla"
+        }, function (isConfirm) {
+          if (isConfirm) {
+            resolve(file);
+          } else {
+            reject(new Error('Canceled by user'));
+          }
+        });
+      });
+    }).then(function() {
+      return reader.read(file);
     });
   };
 
@@ -132,7 +163,13 @@
 
     var ctrl = this;
     return modal.result.then(function(movementsToImport) {
-      return ctrl.movements.add(movementsToImport);
+      // save document and then movements in it
+      return ctrl.documents.add(document).then(function(savedDocument) {
+        movementsToImport.forEach(function(movement) {
+          movement.document = savedDocument;
+        });
+        return ctrl.movements.add(movementsToImport);
+      });
     });
   };
 

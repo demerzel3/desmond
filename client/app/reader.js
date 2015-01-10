@@ -109,12 +109,12 @@
       return PDFJS.getDocument(data);
     }).then(function(pdf) {
       var total = pdf.numPages;
-      console.log(total, "pages");
+      //console.log(total, "pages");
 
       var promises = [];
       for (var i = 1; i <= total; i++) {
         promises.push($q.when(pdf.getPage(i).then(function(page) {
-          console.log('page', page.pageNumber);
+          //console.log('page', page.pageNumber);
           return page.getTextContent();
         }, function(pageErr) {
           console.error(pageErr);
@@ -212,7 +212,7 @@
       }
       var dateString = dateRecord[0].match(self.DATE_PATTERN[0])[1];
       var documentDate = moment(dateString, 'DD/MM/YYYY');
-      console.log("document date:", documentDate.format());
+      //console.log("document date:", documentDate.format());
 
       if (!consumer.readRecord(self.TABLE_START_PATTERN)) {
         return;
@@ -222,7 +222,7 @@
       var record = consumer.readRecord(self.RECORD_PATTERN, self.CONTINUATION_RECORD_PATTERN);
       while (record != null) {
         records.push(record);
-        console.log(record);
+        //console.log(record);
         record = consumer.readRecord(self.RECORD_PATTERN, self.CONTINUATION_RECORD_PATTERN);
       }
 
@@ -277,6 +277,7 @@
 
         // read a record into a movement
         var movement = new Movement();
+        movement.document = document;
         movement.bankId = null;
         movement.date = moment(row[1], 'DD/MM/YYYY', 'it');
         movement.executionDate = moment(row[2], 'DD/MM/YYYY', 'it');
@@ -324,6 +325,7 @@
 
         // read a record into a movement
         var movement = new Movement();
+        movement.document = document;
         movement.bankId = null;
         movement.date = moment(row[0], 'DD/MM/YYYY', 'it');
         movement.executionDate = moment(row[1], 'DD/MM/YYYY', 'it');
@@ -372,7 +374,7 @@
 
     return this.PDFReader.toStringArray(file).then(function(strings) {
       var consumer = new StringArrayConsumer(strings);
-      console.log(strings);
+      //console.log(strings);
 
       if (!consumer.readRecord(self.TABLE_START_PATTERN)) {
         throw new Error('Unable to find the start pattern');
@@ -382,7 +384,7 @@
       var record = consumer.readRecord(self.RECORD_PATTERN);
       while (record != null) {
         records.push(record);
-        console.log(record);
+        //console.log(record);
         record = consumer.readRecord(self.RECORD_PATTERN);
       }
 
@@ -443,6 +445,7 @@
 
         // read a record into a movement
         var movement = new Movement();
+        movement.document = document;
         movement.bankId = null;
         movement.date = moment(row[0], 'DD/MM/YY', 'it');
         movement.executionDate = moment(row[1], 'DD/MM/YY', 'it');

@@ -5,7 +5,7 @@
       movement._id = index;
     });
 
-    console.log(document);
+    //console.log(document);
 
     this.$modalInstance = $modalInstance;
     this.movements = document.movements;

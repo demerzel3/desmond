@@ -25,6 +25,11 @@
     this.total = total || 0;
     this.movements = movements || [];
     this.metadata = metadata || {};
+
+    var doc = this;
+    this.movements.forEach(function(movement) {
+      movement.document = doc;
+    });
   };
 
   Document.prototype.guessMimeType = function(filename) {
@@ -141,6 +146,7 @@
 
   var DocumentsRepository = function($timeout, Restangular) {
     this.Restangular = Restangular;
+    this.endpoint = Restangular.all('documents');
     this.all = [];
 
     var repo = this;
@@ -151,7 +157,7 @@
   DocumentsRepository.$inject = ['$timeout', 'Restangular'];
   DocumentsRepository.prototype.load = function(name) {
     var repo = this;
-    return this.Restangular.all('documents').getList().then(function(documents) {
+    return this.endpoint.getList().then(function(documents) {
       repo.all = documents;
     });
   };
@@ -162,7 +168,14 @@
     return _.find(this.all, {'_id': id});
   };
   DocumentsRepository.prototype.add = function(document) {
-
+    var repo = this;
+    var endpoint = this.endpoint;
+    return endpoint.post(document).then(function(result) {
+      return repo.Restangular.one('documents', result._id).get({single: true});
+    }).then(function(newDocument) {
+      repo.all = [].concat(repo.all, [newDocument]);
+      return newDocument;
+    });
   };
 
 
@@ -211,7 +224,6 @@
       return movementsEndpoint.post(movement);
     });
     return this.$q.all(promises).then(function(results) {
-      console.log("POST results", results);
       return _.pluck(results, '_id');
     }).then(function(newIds) {
       return movementsEndpoint.getList({pagesize: 1000, filter: {_id: {$in: newIds}}});
@@ -243,28 +255,34 @@
 
   var Model = angular.module('Desmond.Model', ['restangular']);
 
-  Model.run(['Restangular', 'CategoriesRepository', 'AccountsRepository', function(Restangular, CategoriesRepository, AccountsRepository) {
+  Model.run(['Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', function(Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
 
-    var LINK_FIELDS = ['account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
+    var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
 
-    // serialize
+    // serialize movement and document
     Restangular.addRequestInterceptor(function(element, operation, what, url) {
       if (what === 'movements' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
-        var copy = angular.copy(element);
-        copy.date = copy.date.format();
-        copy.executionDate = copy.executionDate.format();
-        _.each(LINK_FIELDS, function(fieldName) {
-          if (copy[fieldName]) {
-            copy[fieldName] = copy[fieldName]._id;
+        var movement = angular.copy(element);
+        movement.date = movement.date.format();
+        movement.executionDate = movement.executionDate.format();
+        _.each(LINK_FIELDS, function (fieldName) {
+          if (movement[fieldName]) {
+            movement[fieldName] = movement[fieldName]._id;
           }
         });
-        return copy;
+        return movement;
+      } else if (what === 'documents' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
+        var document = angular.copy(element);
+        document.date = document.date.format();
+        // the relation is tracked from the movements side
+        delete document.movements;
+        return document;
       } else {
         return element;
       }
     });
 
-    // unserialize
+    // unserialize movement
     Restangular.addElementTransformer('movements', false, function(movement) {
       movement.date = moment(movement.date);
       movement.executionDate = moment(movement.executionDate);
@@ -290,11 +308,17 @@
       if (movement.destination) {
         movement.destination = AccountsRepository.find(movement.destination);
       }
-      //console.log(movement);
       // TODO: add sourceMovement and destinationMovement
       return movement;
     });
 
+    // unserialize document
+    Restangular.addElementTransformer('documents', false, function(document) {
+      document.date = moment(document.date);
+      // movements gets filled in documents when they are loaded, the ids stored in the database are just for reference
+      document.movements = [];
+      return document;
+    });
 
   }]);
 

@@ -35,12 +35,42 @@
   };
 
 
+
+
   var PageMetadata = function() {
     this.title = "Desmond";
+  };
+
+
+
+  var FileHasher = function($q) {
+    this.$q = $q;
+  };
+  FileHasher.$inject = ['$q'];
+  /**
+   * Adds an hash filed to the file and returns it (promise).
+   *
+   * @param file
+   * @returns {Promise<File>}
+   */
+  FileHasher.prototype.hashFile = function(file) {
+    var readData = this.$q(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        resolve(e.target.result);
+      };
+      reader.readAsBinaryString(file);
+    });
+
+    return readData.then(function(binaryData) {
+      file.hash = SparkMD5.hashBinary(binaryData);
+      return file;
+    });
   };
 
   var Service = angular.module('Desmond.Service', []);
   Service.service('RulesContainer', RulesContainer);
   Service.service('PageMetadata', PageMetadata);
+  Service.service('FileHasher', FileHasher);
 
 })(window.jQuery, window.angular);

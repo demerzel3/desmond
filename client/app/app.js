@@ -79,7 +79,7 @@
         }
         if (response.status === 201) {
           var urlChunks = response.headers().location.split('/');
-          console.log(urlChunks[urlChunks.length - 1]);
+          //console.log(urlChunks[urlChunks.length - 1]);
           data._id = urlChunks[urlChunks.length - 1];
         } else {
           console.error(response);
