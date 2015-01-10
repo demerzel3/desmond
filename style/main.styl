@@ -6,6 +6,8 @@ $color5 = #FF6600
 $color6 = #CD0D74
 $color7 = #9900FF
 
+$selection-color = #d8ebf6
+
 .modal-backdrop {
   bottom: 0;
 }
@@ -84,7 +86,7 @@ table.table-movements {
     background-color: #fff884;
   }
   tr.selected > td {
-    background-color: #d8ebf6 //#c8e5f6;
+    background-color: $selection-color
     border-color: #b4def6
   }
 
@@ -109,6 +111,45 @@ table.table-movements {
   }
   td.direction {
     white-space nowrap
+  }
+
+  td.description {
+    &.editable {
+      position relative
+
+      & > div {
+        margin-right 21px + 8px
+      }
+    }
+    a.edit {
+      display block
+      position absolute
+      top 0
+      bottom 0
+      right 0
+      opacity 0.3
+      width 21px + 18px
+
+      i {
+        position absolute
+        top 50%
+        left 50%
+        margin-left -11.5px
+        margin-top -5px
+        height 21px
+        width 21px
+      }
+
+      &:hover {
+        opacity 1
+        background-color $selection-color
+      }
+    }
+  }
+  tr.selected > td.description.editable {
+    a.edit {
+      opacity 0.8
+    }
   }
 }
 

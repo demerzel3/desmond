@@ -82,7 +82,10 @@
         selectedItems: '=?', // can be omitted
 
         replaceMovementEnabled: '@',
-        onReplaceMovement: '&'
+        onReplaceMovement: '&',
+
+        editEnabled: '@',
+        onEdit: '&'
       },
       controller: DesmondMovementsTableController,
       controllerAs: 'ctrl',

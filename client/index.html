@@ -122,14 +122,11 @@
                ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
           </a>
           <span>{{ctrl.selectedItems.length}} Selezionati</span>
-          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length > 1">
-            <i class="md md-edit md-lg"></i>
+          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length != 2">
+            <i class="md md-call-merge md-lg"></i> Unisci
           </button>
           <button class="btn btn-default" ng-click="ctrl.deleteSelected()">
             <i class="md md-delete md-lg"></i> Elimina
-          </button>
-          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length != 2">
-            <i class="md md-call-merge md-lg"></i> Unisci
           </button>
           <div grow="1" class="text-right">
             <a href ng-click="ctrl.selectedItems = []"><i class="md md-close md-lg"></i></a>
@@ -140,7 +137,8 @@
       <desmond-movements-table movements="ctrl.filteredMovements"
                                selected-items="ctrl.selectedItems"
                                replace-movement-enabled="true"
-                               on-replace-movement="ctrl.replaceMovement($movement, $file)">
+                               on-replace-movement="ctrl.replaceMovement($movement, $file)"
+                               edit-enabled="true">
       </desmond-movements-table>
     </vbox>
 

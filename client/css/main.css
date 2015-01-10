@@ -86,6 +86,37 @@ table.table-movements th.amount {
 table.table-movements td.direction {
   white-space: nowrap;
 }
+table.table-movements td.description.editable {
+  position: relative;
+}
+table.table-movements td.description.editable > div {
+  margin-right: 29px;
+}
+table.table-movements td.description a.edit {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  opacity: 0.3;
+  width: 39px;
+}
+table.table-movements td.description a.edit i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -11.5px;
+  margin-top: -5px;
+  height: 21px;
+  width: 21px;
+}
+table.table-movements td.description a.edit:hover {
+  opacity: 1;
+  background-color: #d8ebf6;
+}
+table.table-movements tr.selected > td.description.editable a.edit {
+  opacity: 0.8;
+}
 .selectable-box i {
   display: none;
 }
