@@ -1,18 +1,20 @@
 (function($, angular) {
 
-  var ImportModalController = function($timeout, $modalInstance, movements) {
-    _.each(movements, function(movement, index) {
+  var ImportModalController = function($timeout, $modalInstance, document) {
+    _.each(document.movements, function(movement, index) {
       movement._id = index;
     });
 
+    console.log(document);
+
     this.$modalInstance = $modalInstance;
-    this.movements = movements;
+    this.movements = document.movements;
     var ctrl = this;
     $timeout(function() {
-      ctrl.selectedItems = [].concat(movements);
+      ctrl.selectedItems = [].concat(document.movements);
     });
   };
-  ImportModalController.$inject = ['$timeout', '$modalInstance', 'movements'];
+  ImportModalController.$inject = ['$timeout', '$modalInstance', 'document'];
 
   ImportModalController.prototype.ok = function() {
     _.each(this.selectedItems, function(movement) {

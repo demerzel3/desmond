@@ -1,5 +1,54 @@
 (function($, angular) {
 
+  /**
+   * Represents an imported document, that is probably a file.
+   * Three key pieces of information are coded as properties here:
+   *  - document type (e.g. the source of this document)
+   *  - date of the document
+   *  - total amount of the document
+   * Everything else can be freely stored in 'metadata'.
+   *
+   * @param file {File} contains name, type and hash
+   * @param documentType
+   * @param date
+   * @param total
+   * @param movements
+   * @param metadata could be anything
+   * @constructor
+   */
+  var Document = function(file, documentType, date, total, movements, metadata) {
+    this.hash = file.hash;
+    this.filename = file.name;
+    this.mimeType = file.type || this.guessMimeType(file.name);
+    this.documentType = documentType;
+    this.date = date || moment;
+    this.total = total || 0;
+    this.movements = movements || [];
+    this.metadata = metadata || {};
+  };
+
+  Document.prototype.guessMimeType = function(filename) {
+    var chunks = filename.split('.');
+    if (chunks.length < 2) {
+      return null;
+    }
+    var ext = chunks[chunks.length-1].toLowerCase();
+    if ('pdf' === ext) {
+      return 'application/pdf';
+    } else if ('xls' === ext) {
+      return 'application/vnd.ms-excel';
+    } else {
+      return null;
+    }
+  };
+
+  Document.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
+  Document.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
+  Document.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
+  Document.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
+  Document.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
+
+
   var Movement = function() {
     this.date = moment();
     this.executionDate = moment();
@@ -10,6 +59,7 @@
     this.deleted = false;
 
     // links
+    this.document = null; // document from which the movement has been imported
     this.account = null;
     this.category = null;
     this.source = null;
@@ -44,6 +94,9 @@
   CategoriesRepository.prototype.find = function(id) {
     return _.find(this.all, {_id: id});
   };
+
+
+
 
   var AccountsRepository = function($timeout, Restangular) {
     this.Restangular = Restangular;
@@ -83,24 +136,57 @@
     return _.find(this.all, {'_id': id});
   };
 
+
+
+
+  var DocumentsRepository = function($timeout, Restangular) {
+    this.Restangular = Restangular;
+    this.all = [];
+
+    var repo = this;
+    this.loaded = $timeout(function() {
+      return repo.load();
+    });
+  };
+  DocumentsRepository.$inject = ['$timeout', 'Restangular'];
+  DocumentsRepository.prototype.load = function(name) {
+    var repo = this;
+    return this.Restangular.all('documents').getList().then(function(documents) {
+      repo.all = documents;
+    });
+  };
+  DocumentsRepository.prototype.findByHash = function(hash) {
+    return _.find(this.all, {hash: hash});
+  };
+  DocumentsRepository.prototype.find = function(id) {
+    return _.find(this.all, {'_id': id});
+  };
+  DocumentsRepository.prototype.add = function(document) {
+
+  };
+
+
+
+
   /**
    * Stores the list of all movements, sorted by date ASC.
    * Retrieves the list on creation, can be updated via "add" and "remove".
    *
    * @param $q
    * @param Restangular
+   * @param DocumentsRepository
    * @param CategoriesRepository
    * @param AccountsRepository
    * @constructor
    */
-  var MovementsRepository = function($q, Restangular, CategoriesRepository, AccountsRepository) {
+  var MovementsRepository = function($q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
     this.$q = $q;
     this.all = [];
     this.movementsEndpoint = Restangular.all('movements');
 
     // load movements only after accounts and categories
     var repo = this;
-    this.loaded = $q.all([CategoriesRepository.loaded, AccountsRepository.loaded]).then(function() {
+    this.loaded = $q.all([DocumentsRepository.loaded, CategoriesRepository.loaded, AccountsRepository.loaded]).then(function() {
       repo.movementsEndpoint.getList({pagesize: 1000, filter: {deleted: false}}).then(function(movements) {
         repo.all = _.sortBy(movements, function(movement) {
           return movement.date.toISOString();
@@ -108,7 +194,7 @@
       });
     });
   };
-  MovementsRepository.$inject = ['$q', 'Restangular', 'CategoriesRepository', 'AccountsRepository'];
+  MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];
 
   /**
    * Append to movements
@@ -153,6 +239,8 @@
     });
   };
 
+
+
   var Model = angular.module('Desmond.Model', ['restangular']);
 
   Model.run(['Restangular', 'CategoriesRepository', 'AccountsRepository', function(Restangular, CategoriesRepository, AccountsRepository) {
@@ -180,6 +268,12 @@
     Restangular.addElementTransformer('movements', false, function(movement) {
       movement.date = moment(movement.date);
       movement.executionDate = moment(movement.executionDate);
+      if (movement.document) {
+        movement.document = DocumentsRepository.find(movement.document);
+        if (movement.document) {
+          movement.document.movements.push(movement);
+        }
+      }
       if (movement.account) {
         movement.account = AccountsRepository.find(movement.account);
       }
@@ -204,9 +298,14 @@
 
   }]);
 
+  // models
   Model.factory('Movement', function() { return Movement; });
+  Model.factory('Document', function() { return Document; });
+
+  // repositories
   Model.service('CategoriesRepository', CategoriesRepository);
   Model.service('AccountsRepository', AccountsRepository);
+  Model.service('DocumentsRepository', DocumentsRepository);
   Model.service('MovementsRepository', MovementsRepository);
 
 })(window.jQuery, window.angular);

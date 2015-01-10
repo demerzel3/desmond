@@ -6,35 +6,6 @@
     return parseFloat(value);
   };
 
-  /**
-   * Represents an imported document, that is probably a file.
-   * Three key pieces of information are coded as properties here:
-   *  - document type (e.g. the source of this document)
-   *  - date of the document
-   *  - total amount of the document
-   * Everything else can be freely stored in 'metadata'.
-   *
-   * @param documentType
-   * @param date
-   * @param total
-   * @param movements
-   * @param metadata could be anything
-   * @constructor
-   */
-  var ImportedDocument = function(documentType, date, total, movements, metadata) {
-    this.documentType = documentType;
-    this.date = date || moment;
-    this.total = total || 0;
-    this.movements = movements || [];
-    this.metadata = metadata || {};
-  };
-  ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
-  ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
-  ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
-  ImportedDocument.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
-  ImportedDocument.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
-
-
   var StringArrayConsumer = function(input) {
     // make a copy of the input, since it will be "consumed"
     this.data = [].concat(input);
@@ -199,11 +170,12 @@
    *
    * @constructor
    */
-  var IWBankEstrattoContoReader = function(PDFReader, Movement) {
+  var IWBankEstrattoContoReader = function(PDFReader, Movement, Document) {
     this.PDFReader = PDFReader;
     this.Movement = Movement;
+    this.Document = Document;
   };
-  IWBankEstrattoContoReader.$inject = ['PDFReader', 'Movement'];
+  IWBankEstrattoContoReader.$inject = ['PDFReader', 'Movement', 'Document'];
   IWBankEstrattoContoReader.DATE_PATTERN = [/^ESTRATTO AL ([0-9]{2}\/[0-9]{2}\/[0-9]{4})$/];
   IWBankEstrattoContoReader.TABLE_START_PATTERN = ["DATA", "VALUTA", "DARE", "AVERE", "DESCRIZIONE", "N. OPERAZIONE"];
   IWBankEstrattoContoReader.RECORD_PATTERN = [
@@ -230,6 +202,7 @@
   IWBankEstrattoContoReader.prototype.read = function(file) {
     var self = IWBankEstrattoContoReader;
     var Movement = this.Movement;
+    var Document = this.Document;
 
     return this.PDFReader.toStringArray(file).then(function(strings) {
       var consumer = new StringArrayConsumer(strings);
@@ -265,22 +238,24 @@
         movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
         return movement;
       });
-      return new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_IWBANK, documentDate, 0, movements);
+      return new Document(file, Document.TYPE_ESTRATTO_CONTO_IWBANK, documentDate, 0, movements);
     });
   };
 
 
 
-  var IWBankListaMovimentiReader = function(ExcelReader, Movement) {
+  var IWBankListaMovimentiReader = function(ExcelReader, Movement, Document) {
     this.ExcelReader = ExcelReader;
     this.Movement = Movement;
+    this.Document = Document;
   };
-  IWBankListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  IWBankListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
   IWBankListaMovimentiReader.prototype.read = function(file) {
     var Movement = this.Movement;
+    var Document = this.Document;
     return this.ExcelReader.getFirstSheet(file).then(function(rows) {
       var reading = false;
-      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_IWBANK);
+      var document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_IWBANK);
       _.each(rows, function(row) {
         if (row.length < 8) {
           return;
@@ -316,16 +291,18 @@
 
 
 
-  var BNLListaMovimentiReader = function(ExcelReader, Movement) {
+  var BNLListaMovimentiReader = function(ExcelReader, Movement, Document) {
     this.ExcelReader = ExcelReader;
     this.Movement = Movement;
+    this.Document = Document;
   };
-  BNLListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  BNLListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
   BNLListaMovimentiReader.prototype.read = function(file) {
     var Movement = this.Movement;
+    var Document = this.Document;
     return this.ExcelReader.getFirstSheet(file).then(function(rows) {
       var reading = false;
-      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_BNL);
+      var document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_BNL);
       _.each(rows, function(row) {
         if (row.length < 5) {
           return;
@@ -361,11 +338,12 @@
 
 
 
-  var IWBankEstrattoContoCartaReader = function(PDFReader, Movement) {
+  var IWBankEstrattoContoCartaReader = function(PDFReader, Movement, Document) {
     this.PDFReader = PDFReader;
     this.Movement = Movement;
+    this.Document = Document;
   };
-  IWBankEstrattoContoCartaReader.$inject = ['PDFReader', 'Movement'];
+  IWBankEstrattoContoCartaReader.$inject = ['PDFReader', 'Movement', 'Document'];
   IWBankEstrattoContoCartaReader.DATE_TOTAL_PATTERN = [/Addebito in conto corrente il ([0-9]{2}\/[0-9]{2}\/[0-9]{4})/, '(c)', /^[0-9\.,]+$/]
   IWBankEstrattoContoCartaReader.TABLE_START_PATTERN = [
     "Data operazione",
@@ -390,6 +368,7 @@
   IWBankEstrattoContoCartaReader.prototype.read = function(file) {
     var self = IWBankEstrattoContoCartaReader;
     var Movement = this.Movement;
+    var Document = this.Document;
 
     return this.PDFReader.toStringArray(file).then(function(strings) {
       var consumer = new StringArrayConsumer(strings);
@@ -426,21 +405,23 @@
         movement.amount = -parseItalianFloat(record[3]);
         return movement;
       });
-      return new ImportedDocument(ImportedDocument.TYPE_ESTRATTO_CONTO_CARTA_IW, documentDate, documentTotal, movements);
+      return new Document(file, Document.TYPE_ESTRATTO_CONTO_CARTA_IW, documentDate, documentTotal, movements);
     });
   };
 
 
-  var IWPowerListaMovimentiReader = function(ExcelReader, Movement) {
+  var IWPowerListaMovimentiReader = function(ExcelReader, Movement, Document) {
     this.ExcelReader = ExcelReader;
     this.Movement = Movement;
+    this.Document = Document;
   };
-  IWPowerListaMovimentiReader.$inject = ['ExcelReader', 'Movement'];
+  IWPowerListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
   IWPowerListaMovimentiReader.prototype.read = function(file) {
     var Movement = this.Movement;
+    var Document = this.Document;
     return this.ExcelReader.getFirstSheet(file).then(function(rows) {
       var reading = false;
-      var document = new ImportedDocument(ImportedDocument.TYPE_LISTA_MOVIMENTI_IWPOWER);
+      var document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_IWPOWER);
       _.each(rows, function(row) {
         if (row.length < 5) {
           return;

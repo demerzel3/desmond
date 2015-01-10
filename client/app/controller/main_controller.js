@@ -112,14 +112,6 @@
         // on append successful remove the original movement from the list
         ctrl.movements.remove(movement);
       });
-
-      /*
-      // remove the replaced element from the list
-      var movementIndex = ctrl.movements.all.indexOf(movement);
-      ctrl.movements.all.splice(movementIndex, 1);
-
-      ctrl.appendMovements(document.movements);
-      */
     });
   };
 
@@ -132,8 +124,8 @@
       size: 'lg',
       windowClass: ['import-modal'],
       resolve: {
-        movements: function() {
-          return document.movements
+        document: function() {
+          return document;
         }
       }
     });
