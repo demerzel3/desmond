@@ -47,13 +47,23 @@ img.account {
 
 .panel.panel-selection {
   position absolute
-  left 36px
+  left 0
   right 200px
   border 1px solid #ddd
   border-radius 0
   box-shadow none
   line-height 34px
   z-index 100
+
+  .panel-body {
+    padding-left 0
+
+    a {
+      display inline-block
+      width 36px
+      text-align center
+    }
+  }
 
   &.ui-scrollfix {
     position fixed

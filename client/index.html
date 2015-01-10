@@ -117,6 +117,10 @@
 
       <div class="panel panel-selection" ng-show="ctrl.selectedItems.length > 0" ui-scrollfix>
         <div class="panel-body" hbox gap="15">
+          <a href ng-click="ctrl.toggleAllSelection()">
+            <i class="md md-lg"
+               ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
+          </a>
           <span>{{ctrl.selectedItems.length}} Selezionati</span>
           <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length > 1">
             <i class="md md-edit md-lg"></i>

@@ -140,14 +140,16 @@
    * Remove the specified movement from the list, and marks it as deleted in the database.
    *
    * @param movement
+   * @return {Promise}
    */
   MovementsRepository.prototype.remove = function(movement) {
     var repo = this;
 
     movement.deleted = true;
-    movement.save().then(function() {
-      var movementIndex = repo.all.indexOf(movement);
-      repo.all.splice(movementIndex, 1);
+    return movement.save().then(function() {
+      repo.all = _.filter(repo.all, function(mv) {
+        return (mv !== movement);
+      });
     });
   };
 

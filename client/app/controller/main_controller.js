@@ -164,6 +164,14 @@
     this.destinations = _.sortBy(destinations, 'name');
   };
 
+  MainController.prototype.toggleAllSelection = function() {
+    if (this.selectedItems.length < this.filteredMovements.length) {
+      this.selectedItems = [].concat(this.filteredMovements);
+    } else {
+      this.selectedItems = [];
+    }
+  };
+
   MainController.prototype.buildMovementsFilterFunction = function() {
     var filters = this.filters;
     return function(movement, index) {
@@ -211,6 +219,26 @@
 
       return true;
     }
+  };
+
+  MainController.prototype.deleteSelected = function() {
+    var ctrl = this;
+    swal({
+      title: "Eliminare i movimenti selezionati?",
+      type: "warning",
+      allowOutsideClick: true,
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Elimina "+this.selectedItems.length+' movimenti',
+      cancelButtonText: "Annulla"
+    }, function(isConfirm) {
+      if (isConfirm) {
+        //swal("Deleted!", "Your imaginary file has been deleted.", "success");
+        ctrl.selectedItems.forEach(function(movement) {
+          ctrl.movements.remove(movement);
+        });
+      }
+    });
   };
 
 
@@ -305,7 +333,6 @@
     });
   };
 
-  var Desmond = angular.module('Desmond');
-  Desmond.controller('MainController', MainController);
+  angular.module('Desmond').controller('MainController', MainController);
 
 })(window.jQuery, window.angular);

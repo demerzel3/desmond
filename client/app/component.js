@@ -7,6 +7,7 @@
     this.selectedItemsMap = {};
 
     var ctrl = this;
+    // update selection map on change of selection
     $scope.$watch('ctrl.selectedItems', function(selectedItems, oldSelectedItems) {
       if (selectedItems === oldSelectedItems) {
         return;
@@ -17,6 +18,17 @@
         map[selectedItem._id] = true;
       });
       ctrl.selectedItemsMap = map;
+    });
+    // update selection on change of base collection (does not mantain selection of invisible items)
+    $scope.$watch('ctrl.movements', function(movements, oldMovements) {
+      if (movements === oldMovements) {
+        return;
+      }
+      var newMovementsIds = _.invert(_.pluck(movements, '_id'));
+      // this in turn will update the selection map
+      ctrl.selectedItems = ctrl.selectedItems.filter(function(movement) {
+        return !_.isUndefined(newMovementsIds[movement._id]);
+      });
     });
   };
   DesmondMovementsTableController.$inject = ['$scope'];
@@ -30,6 +42,14 @@
   DesmondMovementsTableController.prototype.selectItem = function(item) {
     this.selectedItemsMap[item._id] = true;
     this.selectedItems.push(item);
+  };
+
+  DesmondMovementsTableController.prototype.toggleAllSelection = function() {
+    if (this.selectedItems.length < this.movements.length) {
+      this.selectedItems = [].concat(this.movements);
+    } else {
+      this.selectedItems = [];
+    }
   };
 
   DesmondMovementsTableController.prototype.toggleSelection = function(item) {

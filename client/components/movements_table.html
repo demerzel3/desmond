@@ -1,17 +1,10 @@
 <table class="table table-bordered table-movements">
   <tr>
     <th class="selection">
-      <span class="dropdown" dropdown>
-        <a href class="dropdown-toggle" dropdown-toggle>
-          <i class="md md-check md-lg"></i>
-        </a>
-        <ul class="dropdown-menu">
-          <li>
-            <a href ng-click="ctrl.selectAll()">Seleziona tutti</a>
-            <a href ng-click="ctrl.deselectAll()">Seleziona nessuno</a>
-          </li>
-        </ul>
-      </span>
+      <a href ng-click="ctrl.toggleAllSelection()">
+        <i class="md md-lg"
+           ng-class="{'md-check': ctrl.selectedItems.length < ctrl.movements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.movements.length}"></i>
+      </a>
     </th>
     <th class="account">Conto</th>
     <th>Data</th>

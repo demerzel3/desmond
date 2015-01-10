@@ -27,13 +27,21 @@ img.account {
 }
 .panel.panel-selection {
   position: absolute;
-  left: 36px;
+  left: 0;
   right: 200px;
   border: 1px solid #ddd;
   border-radius: 0;
   box-shadow: none;
   line-height: 34px;
   z-index: 100;
+}
+.panel.panel-selection .panel-body {
+  padding-left: 0;
+}
+.panel.panel-selection .panel-body a {
+  display: inline-block;
+  width: 36px;
+  text-align: center;
 }
 .panel.panel-selection.ui-scrollfix {
   position: fixed;
