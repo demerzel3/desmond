@@ -20,11 +20,19 @@
   Movement.DIRECTION_IN = 'in';
   Movement.DIRECTION_OUT = 'out';
 
-  var CategoriesRepository = function(Restangular) {
+  var CategoriesRepository = function($timeout, Restangular) {
+    this.Restangular = Restangular;
     this.all = [];
 
     var repo = this;
-    this.loaded = Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
+    this.loaded = $timeout(function() {
+      return repo.load();
+    });
+  };
+  CategoriesRepository.$inject = ['$timeout', 'Restangular'];
+  CategoriesRepository.prototype.load = function() {
+    var repo = this;
+    this.Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
       // index categories by id
       var catById = {};
       _.each(categories, function(category) {
@@ -33,12 +41,13 @@
       repo.all = catById;
     });
   };
-  CategoriesRepository.$inject = ['Restangular'];
   CategoriesRepository.prototype.find = function(id) {
     return _.find(this.all, {_id: id});
   };
 
-  var AccountsRepository = function(Restangular) {
+  var AccountsRepository = function($timeout, Restangular) {
+    this.Restangular = Restangular;
+
     this.bankAccounts = [];
     this.people = [];
     this.all = [];
@@ -49,7 +58,14 @@
     };
 
     var repo = this;
-    this.loaded = Restangular.all('accounts').getList().then(function(accounts) {
+    this.loaded = $timeout(function() {
+      return repo.load();
+    });
+  };
+  AccountsRepository.$inject = ['$timeout', 'Restangular'];
+  AccountsRepository.prototype.load = function(name) {
+    var repo = this;
+    return this.Restangular.all('accounts').getList().then(function(accounts) {
       repo.all = accounts;
       _.each(accounts, function(account) {
         if ('bank_account' === account.type) {
@@ -60,7 +76,6 @@
       });
     });
   };
-  AccountsRepository.$inject = ['Restangular'];
   AccountsRepository.prototype.findByName = function(name) {
     return _.find(this.all, {name: name});
   };
@@ -122,11 +137,18 @@
   };
 
   /**
-   * Remove the specified
+   * Remove the specified movement from the list, and marks it as deleted in the database.
    *
    * @param movement
    */
   MovementsRepository.prototype.remove = function(movement) {
+    var repo = this;
+
+    movement.deleted = true;
+    movement.save().then(function() {
+      var movementIndex = repo.all.indexOf(movement);
+      repo.all.splice(movementIndex, 1);
+    });
   };
 
   var Model = angular.module('Desmond.Model', ['restangular']);
@@ -160,7 +182,7 @@
         movement.account = AccountsRepository.find(movement.account);
       }
       if (movement.category) {
-          movement.category = CategoriesRepository.find(movement.category);
+        movement.category = CategoriesRepository.find(movement.category);
       }
       if (movement.source) {
         if (movement.source === 'money') {

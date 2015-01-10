@@ -34,7 +34,13 @@
     });
   };
 
+
+  var PageMetadata = function() {
+    this.title = "Desmond";
+  };
+
   var Service = angular.module('Desmond.Service', []);
   Service.service('RulesContainer', RulesContainer);
+  Service.service('PageMetadata', PageMetadata);
 
 })(window.jQuery, window.angular);

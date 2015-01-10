@@ -1,7 +1,13 @@
 (function($, angular) {
 
-  //var DB_BASE_URL = 'http://192.168.1.200:8123/desmond';
-  var DB_BASE_URL = 'http://192.168.1.200:8123/desmond_dev';
+  var Config = {
+    dev: {
+      DB_BASE_URL: 'http://192.168.1.200:8123/desmond_dev'
+    },
+    prod: {
+      DB_BASE_URL: 'http://192.168.1.200:8123/desmond'
+    }
+  };
 
   var Desmond = angular.module('Desmond', [
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
@@ -25,12 +31,41 @@
     };
   }]);
 
-  Desmond.config(['RestangularProvider', function(RestangularProvider) {
-    RestangularProvider.setBaseUrl(DB_BASE_URL);
-    RestangularProvider.setRestangularFields({id: '_id'});
+  Desmond.config(['$locationProvider', function($locationProvider) {
+    $locationProvider.html5Mode(true);
+  }]);
 
-    // extract data from the list response of restheart
-    RestangularProvider.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
+  Desmond.run(['Restangular', '$location', 'PageMetadata', function(Restangular, $location, PageMetadata) {
+    var environment = $location.search()['dev'] ? 'dev' : 'prod';
+
+    if (environment !== 'prod') {
+      // change page title
+      PageMetadata.title = '['+environment+'] '+PageMetadata.title;
+    }
+
+    Restangular.setBaseUrl(Config[environment].DB_BASE_URL);
+    Restangular.setRestangularFields({id: '_id'});
+
+    Restangular.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
+      if ('put' === operation) {
+        // remove all underscored fields from the element
+        element = angular.copy(element);
+        headers['If-Match'] = element._etag;
+        _.forEach(element, function(value, key) {
+          if (key[0] === '_') {
+            delete element[key];
+          }
+        });
+        return {element: element, headers: headers};
+      } else {
+        return {element: element};
+      }
+    });
+
+    /**
+     * Handle restheart peculiar responses.
+     */
+    Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
       if (operation === "getList") {
         if (data['_embedded'] && data['_embedded']['rh:doc']) {
           return data['_embedded']['rh:doc'];

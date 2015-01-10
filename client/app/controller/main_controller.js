@@ -83,30 +83,12 @@
 
   MainController.prototype.importFile = function(account, file, readerName) {
     var ctrl = this;
-    var $modal = this.$modal;
     this.readFile(file, readerName).then(function(document) {
       _.each(document.movements, function(movement) {
         movement.account = account;
       });
 
-      var modal = $modal.open({
-        templateUrl: 'components/import_modal.html',
-        controller: 'ImportModalController as ctrl',
-        //backdrop: 'static',
-        size: 'lg',
-        windowClass: ['import-modal'],
-        resolve: {
-          movements: function() {
-            return document.movements
-          }
-        }
-      });
-
-      modal.result.then(function(movementsToImport) {
-        ctrl.appendMovements(movementsToImport);
-      }, function(reason) {
-        console.log('modal dismissed', reason);
-      });
+      ctrl.appendMovements(document);
     });
   };
 
@@ -122,20 +104,44 @@
         }
       }
 
+      _.each(document.movements, function(mov) {
+        mov.account = movement.account;
+      });
+
+      ctrl.appendMovements(document).then(function() {
+        // on append successful remove the original movement from the list
+        ctrl.movements.remove(movement);
+      });
+
+      /*
       // remove the replaced element from the list
       var movementIndex = ctrl.movements.all.indexOf(movement);
       ctrl.movements.all.splice(movementIndex, 1);
 
-      _.each(document.movements, function(mov) {
-        mov.account = movement.account;
-      });
       ctrl.appendMovements(document.movements);
+      */
     });
   };
 
-  MainController.prototype.appendMovements = function(movements) {
-    this.applyAllRules(movements);
-    this.movements.add(movements);
+  MainController.prototype.appendMovements = function(document) {
+    this.applyAllRules(document.movements);
+
+    var modal = this.$modal.open({
+      templateUrl: 'components/import_modal.html',
+      controller: 'ImportModalController as ctrl',
+      size: 'lg',
+      windowClass: ['import-modal'],
+      resolve: {
+        movements: function() {
+          return document.movements
+        }
+      }
+    });
+
+    var ctrl = this;
+    return modal.result.then(function(movementsToImport) {
+      return ctrl.movements.add(movementsToImport);
+    });
   };
 
   MainController.prototype.updateFilters = function() {

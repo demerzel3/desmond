@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
-<head lang="en">
+<html ng-app="Desmond">
+<head lang="en" ng-controller="MetaController as ctrl">
+  <base href="/">
   <meta charset="UTF-8">
-  <title>Desmond</title>
+  <title ng-bind="ctrl.meta.title">Desmond</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="lib/material-design-iconic-font/css/material-design-iconic-font.min.css" rel="stylesheet"/>
@@ -12,7 +13,7 @@
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
 </head>
-<body vbox ng-app="Desmond" ng-controller="MainController as ctrl">
+<body vbox ng-controller="MainController as ctrl">
 
   <hbox>
     <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
@@ -134,7 +135,7 @@
 
       <desmond-movements-table movements="ctrl.filteredMovements"
                                selected-items="ctrl.selectedItems"
-                               replace-movement-enabled="false"
+                               replace-movement-enabled="true"
                                on-replace-movement="ctrl.replaceMovement($movement, $file)">
       </desmond-movements-table>
     </vbox>
@@ -173,6 +174,7 @@
   <script src="app/rules.js"></script>
   <script src="app/reader.js"></script>
   <script src="app/app.js"></script>
+  <script src="app/controller/meta_controller.js"></script>
   <script src="app/controller/main_controller.js"></script>
   <script src="app/controller/import_modal_controller.js"></script>
 </body>
