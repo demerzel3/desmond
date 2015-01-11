@@ -193,6 +193,7 @@
    * @constructor
    */
   var MovementsRepository = function($q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
+    this.Restangular = Restangular;
     this.$q = $q;
     this.all = [];
     this.movementsEndpoint = Restangular.all('movements');
@@ -251,8 +252,31 @@
     });
   };
 
+  /**
+   * Saves the specified movement remotely and on success reloads it from the server and places it in the list.
+   *
+   * @param movement
+   * @return {Promise}
+   */
+  MovementsRepository.prototype.save = function(movement) {
+    var repo = this;
+    return movement.save().then(function(result) {
+      if (!result || !result._id) {
+        return repo.Restangular.one('movements', movement._id).get();
+      } else {
+        return result;
+      }
+    }).then(function(newMovement) {
+      var index = _.indexOf(_.pluck(repo.all, '_id'), movement._id);
+      repo.all.splice(index, 1, newMovement);
+      repo.all = [].concat(repo.all);
+      return newMovement;
+    });
+  };
 
 
+
+  
   var Model = angular.module('Desmond.Model', ['restangular']);
 
   Model.run(['Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', function(Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {

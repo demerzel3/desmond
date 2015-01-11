@@ -6,12 +6,6 @@
 
     this.$modalInstance = $modalInstance;
     this.movement = movement;
-
-    _.forIn(this.categories.all, function(category) {
-      if (category === movement.category) {
-        console.log("category found! OMG!");
-      }
-    });
   };
   EditModalController.$inject = ['$timeout', '$modalInstance', 'AccountsRepository', 'CategoriesRepository', 'movement'];
 
