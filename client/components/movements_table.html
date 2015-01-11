@@ -17,9 +17,10 @@
   <tr ng-repeat="movement in ctrl.movements"
       ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
     <td class="selection">
-      <i class="md md-2x"
-         ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"
-         ng-click="ctrl.toggleSelection(movement)"></i>
+      <a href ng-click="ctrl.toggleSelection(movement)">
+        <i class="md md-2x"
+           ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"></i>
+      </a>
     </td>
     <td class="account">
       <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>

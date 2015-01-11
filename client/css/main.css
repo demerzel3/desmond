@@ -69,10 +69,24 @@ table.table-movements th.selection {
   width: 36px;
   padding: 0;
   text-align: center;
+  position: relative;
 }
 table.table-movements td.selection i {
   cursor: pointer;
-  line-height: 32px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin-top: -20px;
+}
+table.table-movements td.selection a {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  color: #333;
 }
 table.table-movements td.account,
 table.table-movements th.account {
