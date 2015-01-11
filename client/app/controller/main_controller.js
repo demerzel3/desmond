@@ -31,18 +31,15 @@
       }
       ctrl.updateFilters();
       ctrl.refreshCharts();
-      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction);
+      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction, ctrl);
     });
 
     $scope.$watchCollection('ctrl.filters', function(newFilters, oldFilters) {
       if (newFilters === oldFilters) {
         return;
       }
-      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction);
+      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
     });
-
-    // gets executed under the global scope, must be defined in a place where it can access filters independently of "this"
-    this.movementsFilterFunction = this.buildMovementsFilterFunction();
   };
   MainController.$inject = [
     '$scope', '$q', '$injector', '$modal', 'FileHasher', 'RulesContainer',
@@ -201,53 +198,50 @@
     }
   };
 
-  MainController.prototype.buildMovementsFilterFunction = function() {
+  MainController.prototype.movementsFilterFunction = function(movement) {
     var filters = this.filters;
-    return function(movement, index) {
-
-      if (filters.source) {
-        if (movement.direction !== 'in') {
-          return false;
-        }
-        if (filters.source._id && movement.source !== filters.source) {
-          return false;
-        }
-        if (!filters.source._id && movement.source) {
-          return false;
-        }
-      }
-
-      if (filters.destination) {
-        if (movement.direction !== 'out') {
-          return false;
-        }
-        if (filters.destination._id && movement.destination !== filters.destination) {
-          return false;
-        }
-        if (!filters.destination._id && movement.destination) {
-          return false;
-        }
-      }
-
-      if (filters.category) {
-        if (filters.category._id && movement.category !== filters.category) {
-          return false;
-        }
-        if (!filters.category._id && movement.category) {
-          return false;
-        }
-      }
-
-      if (filters.account && movement.account !== filters.account) {
+    if (filters.source) {
+      if (movement.direction !== 'in') {
         return false;
       }
-
-      if (filters.direction && movement.direction !== filters.direction) {
+      if (filters.source._id && movement.source !== filters.source) {
         return false;
       }
-
-      return true;
+      if (!filters.source._id && movement.source) {
+        return false;
+      }
     }
+
+    if (filters.destination) {
+      if (movement.direction !== 'out') {
+        return false;
+      }
+      if (filters.destination._id && movement.destination !== filters.destination) {
+        return false;
+      }
+      if (!filters.destination._id && movement.destination) {
+        return false;
+      }
+    }
+
+    if (filters.category) {
+      if (filters.category._id && movement.category !== filters.category) {
+        return false;
+      }
+      if (!filters.category._id && movement.category) {
+        return false;
+      }
+    }
+
+    if (filters.account && movement.account !== filters.account) {
+      return false;
+    }
+
+    if (filters.direction && movement.direction !== filters.direction) {
+      return false;
+    }
+
+    return true;
   };
 
   MainController.prototype.deleteSelected = function() {
@@ -268,6 +262,8 @@
       }
     });
   };
+
+
 
 
   var CHART_COLORS = [
