@@ -288,7 +288,7 @@
 
     var ctrl = this;
     return modal.result.then(function(editedMovement) {
-      if (editedMovement.category._isNew) {
+      if (editedMovement.category && editedMovement.category._isNew) {
         return ctrl.categories.add(editedMovement.category).then(function (newCategory) {
           editedMovement.category = newCategory;
           return editedMovement;
