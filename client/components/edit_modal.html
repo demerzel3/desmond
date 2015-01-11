@@ -1,0 +1,79 @@
+<div class="modal-header">
+  <a class="pull-right" href ng-click="ctrl.cancel()"><i class="md md-close md-2x"></i></a>
+  <h3 class="modal-title">Modifica movimento</h3>
+</div>
+<div class="modal-body" ng-init="movement = ctrl.movement">
+  <form class="form-horizontal">
+    <div class="form-group" ng-if="movement.document">
+      <label for="documentBox" class="col-sm-2 control-label">Importato da</label>
+      <div class="col-sm-10 fake-control" id="documentBox">
+        <i class="fa fa-lg" ng-class="ctrl.getDocumentIconClass(movement.document)"></i>
+        {{movement.document.filename}}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="accountBox" class="col-sm-2 control-label">Conto</label>
+      <div class="col-sm-10 fake-control" id="accountBox">
+        <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
+        {{movement.account.name}}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="dateBox" class="col-sm-2 control-label">Data</label>
+      <div class="col-sm-10 fake-control" id="dateBox">
+        {{movement.date.toDate()|date:'dd/MM/yyyy'}}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="executionDateBox" class="col-sm-2 control-label">Data valuta</label>
+      <div class="col-sm-10 fake-control" id="executionDateBox">
+        {{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="amountBox" class="col-sm-2 control-label">Importo</label>
+      <div class="col-sm-10 fake-control" id="amountBox">
+        {{movement.amount | number:2}} €
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="descriptionBox" class="col-sm-2 control-label">Causale</label>
+      <div class="col-sm-10">
+        <textarea auto-grow class="form-control" id="descriptionBox" placeholder="Password" ng-model="movement.description">
+        </textarea>
+      </div>
+    </div>
+    <div class="form-group" ng-if="movement.direction == 'in'">
+      <label for="sourceBox" class="col-sm-2 control-label">Origine</label>
+      <div class="col-sm-10">
+        <select class="form-control" id="sourceBox" name="source"
+                ng-options="account as account.name for account in ctrl.accounts.all"
+                ng-model="movement.source">
+        </select>
+      </div>
+    </div>
+    <div class="form-group" ng-if="movement.direction == 'out'">
+      <label for="destinationBox" class="col-sm-2 control-label">Destinazione</label>
+      <div class="col-sm-10">
+        <select class="form-control" id="destinationBox" name="destination"
+                ng-options="account as account.name for account in ctrl.accounts.all"
+                ng-model="movement.destination">
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="categoryBox" class="col-sm-2 control-label">Categoria</label>
+      <div class="col-sm-10">
+        <select class="form-control" id="categoryBox" name="destination"
+                ng-options="category as category.name for (category_id, category) in ctrl.categories.all"
+                ng-model="movement.category">
+        </select>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary btn-lg" ng-click="ctrl.ok()">
+    Salva
+  </button>
+</div>

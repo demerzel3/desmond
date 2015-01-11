@@ -138,7 +138,8 @@
                                selected-items="ctrl.selectedItems"
                                replace-movement-enabled="true"
                                on-replace-movement="ctrl.replaceMovement($movement, $file)"
-                               edit-enabled="true">
+                               edit-enabled="true"
+                               on-edit="ctrl.editMovement($movement)">
       </desmond-movements-table>
     </vbox>
 
@@ -171,6 +172,7 @@
   <script src="lib/ng-file-upload/angular-file-upload.min.js"></script>
   <script src="lib/angular-nl2br/angular-nl2br.min.js"></script>
   <script src="lib/restangular/dist/restangular.min.js"></script>
+  <script src="app/lib/autogrow.ng.js"></script>
   <script src="app/component.js"></script>
   <script src="app/model.js"></script>
   <script src="app/service.js"></script>
@@ -180,5 +182,6 @@
   <script src="app/controller/meta_controller.js"></script>
   <script src="app/controller/main_controller.js"></script>
   <script src="app/controller/import_modal_controller.js"></script>
+  <script src="app/controller/edit_modal_controller.js"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@
 
   var Desmond = angular.module('Desmond', [
     'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
+    'autoGrow',
     'ui.utils', 'ui.bootstrap',
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
   ]);

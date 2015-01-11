@@ -9,6 +9,21 @@ $color7 = #9900FF
 $text-color = #333
 $selection-color = #d8ebf6
 
+.modal-header {
+  a {
+    i.md-2x {
+      line-height 1.3em
+    }
+    color #ccc
+    &:hover {
+      color $text-color
+    }
+    &:active {
+      color #666
+    }
+  }
+}
+
 .modal-backdrop {
   bottom: 0;
 }
@@ -182,4 +197,12 @@ table.table-movements {
       display: inline-block
     }
   }
+}
+
+form.form-horizontal .fake-control {
+  line-height 34px
+}
+textarea[auto-grow] {
+  resize: none;
+  transition: 0.25s;
 }

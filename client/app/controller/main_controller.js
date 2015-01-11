@@ -263,6 +263,41 @@
     });
   };
 
+  MainController.prototype.editMovement = function(movement) {
+    var modal = this.$modal.open({
+      templateUrl: 'components/edit_modal.html',
+      controller: 'EditModalController as ctrl',
+      size: 'lg',
+      windowClass: ['edit-modal'],
+      backdrop: 'static',
+      resolve: {
+        movement: function() {
+          // copy the angular movement, mantaining the references to other objects
+          // TODO: move this into the Movement model class
+          var copy = angular.copy(movement);
+          var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
+          _.each(LINK_FIELDS, function (fieldName) {
+            copy[fieldName] = movement[fieldName];
+          });
+          return copy;
+        }
+      }
+    });
+
+    var ctrl = this;
+    return modal.result.then(function(movement) {
+      /*
+      // save document and then movements in it
+      return ctrl.documents.add(document).then(function(savedDocument) {
+        movementsToImport.forEach(function(movement) {
+          movement.document = savedDocument;
+        });
+        return ctrl.movements.add(movementsToImport);
+      });
+      */
+      console.log('Success', movement);
+    });
+  };
 
 
 

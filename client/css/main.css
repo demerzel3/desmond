@@ -1,3 +1,15 @@
+.modal-header a {
+  color: #ccc;
+}
+.modal-header a i.md-2x {
+  line-height: 1.3em;
+}
+.modal-header a:hover {
+  color: #333;
+}
+.modal-header a:active {
+  color: #666;
+}
 .modal-backdrop {
   bottom: 0;
 }
@@ -141,4 +153,11 @@ table.table-movements tr.selected > td.description.editable a.edit {
 .selectable-box:hover i,
 .selectable-box.selectable-box-visible i {
   display: inline-block;
+}
+form.form-horizontal .fake-control {
+  line-height: 34px;
+}
+textarea[auto-grow] {
+  resize: none;
+  transition: 0.25s;
 }
