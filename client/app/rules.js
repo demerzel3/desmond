@@ -47,6 +47,7 @@
       if (movement.description.indexOf('PAGOBANCOMAT') > -1
         || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1) {
         if (movement.description.indexOf('ESSELUN') > -1
+          || movement.description.indexOf('AUCHAN') > -1
           || movement.description.indexOf('IPERCOO') > -1
           || movement.description.indexOf('CONAD') > -1
           || movement.description.indexOf('TIGROS') > -1

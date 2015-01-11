@@ -79,6 +79,8 @@
       templateUrl: 'components/movements_table.html',
       scope: {
         movements: '=',
+
+        selectionEnabled: '@',
         selectedItems: '=?', // can be omitted
 
         replaceMovementEnabled: '@',
@@ -94,6 +96,12 @@
         // set default values to attributes
         if (!attrs.replaceMovementEnabled) {
           attrs.replaceMovementEnabled = 'false';
+        }
+        if (!attrs.editEnabled) {
+          attrs.editEnabled = 'false';
+        }
+        if (!attrs.selectionEnabled) {
+          attrs.selectionEnabled = 'true';
         }
       }
     }

@@ -10,6 +10,17 @@
     this.$modalInstance = $modalInstance;
     this.movement = movement;
     this.customCategoryName = null;
+    this.title = '';
+
+    if (movement._id) {
+      this.title = 'Modifica movimento';
+    } else if (movement.originatedBy) {
+      if ('merge' === movement.originatedBy) {
+        this.title = 'Unisci movimenti';
+      }
+    } else {
+      this.title = 'Nuovo movimento';
+    }
   };
   EditModalController.$inject = ['$timeout', '$modalInstance', 'AccountsRepository', 'CategoriesRepository', 'movement'];
 

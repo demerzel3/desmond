@@ -92,7 +92,7 @@
               <li class="divider"></li>
               <li><a href="" ng-click="ctrl.filters.category = {name: 'Non assegnata'}">Non assegnata</a></li>
               <li class="divider"></li>
-              <li ng-repeat="category in ctrl.categories.all">
+              <li ng-repeat="category in ctrl.usedCategories">
                 <a href="" ng-click="ctrl.filters.category = category">{{category.name}}</a>
               </li>
             </ul>
@@ -122,7 +122,7 @@
                ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
           </a>
           <span>{{ctrl.selectedItems.length}} Selezionati</span>
-          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length != 2">
+          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length < 2" ng-click="ctrl.mergeSelected()">
             <i class="md md-call-merge md-lg"></i> Unisci
           </button>
           <button class="btn btn-default" ng-click="ctrl.deleteSelected()">

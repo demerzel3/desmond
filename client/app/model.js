@@ -62,6 +62,7 @@
     this.direction = null;
     this.amount = 0;
     this.deleted = false;
+    this.originatedBy = null;
 
     // links
     this.document = null; // document from which the movement has been imported
@@ -71,9 +72,11 @@
     this.sourceMovement = null; // link to the inverse movement in the source account
     this.destination = null;
     this.destinationMovement = null; // link to the inverse movement in the destination account
+    this.originatedFrom = null;
   };
   Movement.DIRECTION_IN = 'in';
   Movement.DIRECTION_OUT = 'out';
+  Movement.ORIGINATED_BY_MERGE = 'merge';
 
   var CategoriesRepository = function($timeout, Restangular) {
     this.Restangular = Restangular;

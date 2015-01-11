@@ -1,6 +1,6 @@
 <table class="table table-bordered table-movements">
   <tr>
-    <th class="selection">
+    <th class="selection" ng-if="ctrl.selectionEnabled == 'true'">
       <a href ng-click="ctrl.toggleAllSelection()">
         <i class="md md-lg"
            ng-class="{'md-check': ctrl.selectedItems.length < ctrl.movements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.movements.length}"></i>
@@ -16,7 +16,7 @@
   </tr>
   <tr ng-repeat="movement in ctrl.movements"
       ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
-    <td class="selection">
+    <td class="selection" ng-if="ctrl.selectionEnabled == 'true'">
       <a href ng-click="ctrl.toggleSelection(movement)">
         <i class="md md-2x"
            ng-class="{'md-check-box-outline-blank': !ctrl.isSelected(movement), 'md-check-box': ctrl.isSelected(movement)}"></i>

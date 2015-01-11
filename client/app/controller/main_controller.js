@@ -1,12 +1,13 @@
 (function($, angular) {
 
-  var MainController = function($scope, $q, $injector, $modal, Restangular, FileHasher, RulesContainer,
+  var MainController = function($scope, $q, $injector, $modal, Restangular, FileHasher, RulesContainer, Movement,
                                 DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
     this.Restangular = Restangular;
     this.FileHasher = FileHasher;
+    this.Movement = Movement;
     this.RulesContainer = RulesContainer;
     this.documents = DocumentsRepository;
     this.categories = CategoriesRepository;
@@ -16,6 +17,7 @@
     this.files = [];
     this.sources = [];
     this.destinations = [];
+    this.usedCategories = [];
     this.filters = {
       account: null,
       source: null,
@@ -43,7 +45,7 @@
     });
   };
   MainController.$inject = [
-    '$scope', '$q', '$injector', '$modal', 'Restangular', 'FileHasher', 'RulesContainer',
+    '$scope', '$q', '$injector', '$modal', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
     'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
 
   MainController.prototype.importFiles = function(account, files) {
@@ -189,6 +191,14 @@
       return !!destination;
     });
     this.destinations = _.sortBy(destinations, 'name');
+
+    // extract categories
+    var categories = _.pluck(this.movements.all, 'category');
+    categories = _.uniq(categories);
+    categories = _.filter(categories, function(categories) {
+      return !!categories;
+    });
+    this.usedCategories = _.sortBy(categories, 'name');
   };
 
   MainController.prototype.toggleAllSelection = function() {
@@ -245,10 +255,11 @@
     return true;
   };
 
-  MainController.prototype.deleteSelected = function() {
+  MainController.prototype.deleteSelected = function(message) {
+    message = message || 'Eliminare i movimenti selezionati?';
     var ctrl = this;
     swal({
-      title: 'Eliminare i movimenti selezionati?',
+      title: message,
       type: 'warning',
       allowOutsideClick: true,
       showCancelButton: true,
@@ -262,6 +273,74 @@
         });
       }
     });
+  };
+
+  MainController.prototype.mergeSelected = function() {
+    // can only be from the same account
+    if (_.uniq(_.pluck(this.selectedItems, 'account')).length > 1) {
+      sweetAlert('Oops..', 'Non puoi unire movimenti di conti diversi, seleziona solo movimenti dello stesso conto.');
+      return;
+    }
+
+    // build a new movement from the selected ones
+    var amount = _.reduce(this.selectedItems, function(total, movement) {
+      return total + movement.amount;
+    }, 0);
+    if (amount.toFixed(2) === '0.00') {
+      return this.deleteSelected('L\'unione degli elementi selezionati dà somma 0, vuoi eliminarli invece di unirli?');
+    }
+
+    var Movement = this.Movement;
+    var newMovement = new Movement();
+    newMovement.date = this.selectedItems[0].date;
+    newMovement.executionDate = this.selectedItems[0].executionDate;
+    newMovement.amount = amount;
+    newMovement.direction = (amount > 0) ? Movement.DIRECTION_IN : Movement.DIRECTION_OUT;
+    newMovement.account = this.selectedItems[0].account;
+    newMovement.originatedBy = Movement.ORIGINATED_BY_MERGE;
+    newMovement.originatedFrom = this.selectedItems;
+    newMovement.description = _.pluck(this.selectedItems, 'description').join('\n\n');
+    newMovement.category = _.reduce(this.selectedItems, function(cat, movement) {
+      if (!movement.category) {
+        return cat;
+      }
+      if (_.isUndefined(cat)) {
+        return movement.category;
+      } else if (cat === movement.category) {
+        return cat;
+      } else {
+        return null;
+      }
+    }, undefined);
+    if (Movement.DIRECTION_IN === newMovement.direction) {
+      newMovement.source = _.reduce(this.selectedItems, function(result, movement) {
+        if (!movement.source) {
+          return result;
+        }
+        if (_.isUndefined(result)) {
+          return movement.source;
+        } else if (result === movement.source) {
+          return result;
+        } else {
+          return null;
+        }
+      }, undefined);
+    } else {
+      newMovement.destination = _.reduce(this.selectedItems, function(result, movement) {
+        if (!movement.destination) {
+          return result;
+        }
+        if (_.isUndefined(result)) {
+          return movement.destination;
+        } else if (result === movement.destination) {
+          return result;
+        } else {
+          return null;
+        }
+      }, undefined);
+    }
+
+    this.editMovement(newMovement);
   };
 
   MainController.prototype.editMovement = function(movement) {
