@@ -65,9 +65,11 @@
       <label for="categoryBox" class="col-sm-2 control-label">Categoria</label>
       <div class="col-sm-10">
         <select class="form-control" id="categoryBox" name="destination"
-                ng-options="category as category.name for (category_id, category) in ctrl.categories.all"
+                ng-options="category as category.name for category in ctrl.categories"
                 ng-model="movement.category">
         </select>
+        <input ng-if="movement.category._id == '_custom'" type="text" class="form-control" id="customCategoryBox"
+               placeholder="Inserisci il nome della nuova categoria" ng-model="ctrl.customCategoryName" >
       </div>
     </div>
   </form>

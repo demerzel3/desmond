@@ -99,6 +99,15 @@
   CategoriesRepository.prototype.find = function(id) {
     return _.find(this.all, {_id: id});
   };
+  CategoriesRepository.prototype.add = function(category) {
+     var repo = this;
+     return this.Restangular.all('categories').post(category).then(function(result) {
+       return repo.Restangular.one('categories', result._id).get({single: true});
+     }).then(function(newCategory) {
+       repo.all[newCategory._id] = newCategory;
+       return newCategory;
+     });
+   };
 
 
 
@@ -276,7 +285,7 @@
 
 
 
-  
+
   var Model = angular.module('Desmond.Model', ['restangular']);
 
   Model.run(['Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', function(Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
