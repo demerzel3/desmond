@@ -83,15 +83,15 @@
       }
       return $q(function(resolve, reject) {
         swal({
-          title: "File già importato",
+          title: 'File già importato',
           html: 'Sembra che tu abbia già importato <strong>' + file.name + '</strong>, eseguire di nuovo l\'importazione potrebbe creare movimenti duplicati.\n'
             + 'Come vuoi procedere?',
           type: "info",
           allowOutsideClick: true,
           showCancelButton: true,
-          confirmButtonColor: "#DD6B55",
-          confirmButtonText: "Importa ugualmente",
-          cancelButtonText: "Annulla"
+          confirmButtonColor: '#DD6B55',
+          confirmButtonText: 'Importa ugualmente',
+          cancelButtonText: 'Annulla'
         }, function (isConfirm) {
           if (isConfirm) {
             resolve(file);
@@ -253,16 +253,15 @@
   MainController.prototype.deleteSelected = function() {
     var ctrl = this;
     swal({
-      title: "Eliminare i movimenti selezionati?",
-      type: "warning",
+      title: 'Eliminare i movimenti selezionati?',
+      type: 'warning',
       allowOutsideClick: true,
       showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "Elimina "+this.selectedItems.length+' movimenti',
-      cancelButtonText: "Annulla"
+      confirmButtonColor: '#DD6B55',
+      confirmButtonText: 'Elimina '+this.selectedItems.length+' movimenti',
+      cancelButtonText: 'Annulla'
     }, function(isConfirm) {
       if (isConfirm) {
-        //swal("Deleted!", "Your imaginary file has been deleted.", "success");
         ctrl.selectedItems.forEach(function(movement) {
           ctrl.movements.remove(movement);
         });
@@ -304,7 +303,7 @@
     }
     var canvas = $('<canvas id="bySourceChart" width="200" height="200"></canvas>');
     container.append(canvas);
-    return new Chart(canvas.get(0).getContext("2d"));
+    return new Chart(canvas.get(0).getContext('2d'));
   };
   MainController.prototype.buildIncomingBySourceChart = function() {
     var movements = _.where(this.movements.all, {direction: 'in'});
