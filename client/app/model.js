@@ -88,12 +88,7 @@
   CategoriesRepository.prototype.load = function() {
     var repo = this;
     this.Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
-      // index categories by id
-      var catById = {};
-      _.each(categories, function(category) {
-        catById[category._id] = category;
-      });
-      repo.all = catById;
+      repo.all = categories;
     });
   };
   CategoriesRepository.prototype.find = function(id) {
@@ -102,9 +97,9 @@
   CategoriesRepository.prototype.add = function(category) {
      var repo = this;
      return this.Restangular.all('categories').post(category).then(function(result) {
-       return repo.Restangular.one('categories', result._id).get({single: true});
+       return repo.Restangular.one('categories', result._id).get();
      }).then(function(newCategory) {
-       repo.all[newCategory._id] = newCategory;
+       repo.all = _.sortBy([newCategory].concat(repo.all), 'name');
        return newCategory;
      });
    };
@@ -180,7 +175,7 @@
     var repo = this;
     var endpoint = this.endpoint;
     return endpoint.post(document).then(function(result) {
-      return repo.Restangular.one('documents', result._id).get({single: true});
+      return repo.Restangular.one('documents', result._id).get();
     }).then(function(newDocument) {
       repo.all = [].concat(repo.all, [newDocument]);
       return newDocument;

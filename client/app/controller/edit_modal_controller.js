@@ -2,15 +2,10 @@
 
   var EditModalController = function($timeout, $modalInstance, AccountsRepository, CategoriesRepository, movement) {
     this.accounts = AccountsRepository;
-    this.categories = [];
-    var ctrl = this;
-    _.forIn(CategoriesRepository.all, function(category) {
-      ctrl.categories.push(category);
-    });
-    this.categories.push({
+    this.categories = [].concat(CategoriesRepository.all, [{
       name: '+ Nuova categoria',
       _id: '_custom'
-    });
+    }]);
 
     this.$modalInstance = $modalInstance;
     this.movement = movement;

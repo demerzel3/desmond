@@ -5,14 +5,14 @@
 
     RulesContainer.rule('F24', function(movement) {
       if (movement.description.indexOf('ADDEBITO DELEGA F24') > -1) {
-        movement.category = CategoriesRepository.all['imposte'];
+        movement.category = CategoriesRepository.find('imposte');
         return true;
       }
     });
 
     RulesContainer.rule('Bollo', function(movement) {
       if (movement.description.indexOf('IMPOSTA DI BOLLO') > -1) {
-        movement.category = CategoriesRepository.all['imposte'];
+        movement.category = CategoriesRepository.find('imposte');
         return true;
       }
     });
@@ -26,7 +26,7 @@
         || movement.description.indexOf('SPESE INVIO DOCUMENTO') > -1
         || movement.description.indexOf('SPESE INVIO E/C') > -1
         || movement.description.indexOf('RECUPERO SPESE') > -1) {
-        movement.category = CategoriesRepository.all['commissioni'];
+        movement.category = CategoriesRepository.find('commissioni');
         return true;
       }
     });
@@ -37,7 +37,7 @@
         || movement.description.indexOf('COMPETENZE BONUS') > -1
         || movement.description.indexOf('COMPETENZE AL CONTO') > -1
         || movement.description.indexOf('COMPETENZE SU C/C') > -1)) {
-        //movement.category = CategoriesRepository.all['investimenti'];
+        //movement.category = CategoriesRepository.find('investimenti');
         movement.source = AccountsRepository.findByName('Interessi');
         return true;
       }
@@ -53,7 +53,7 @@
           || movement.description.indexOf('BOFROST') > -1
           || movement.description.indexOf('CARREFOUR') > -1
           || movement.description.indexOf('LIDL') > -1) {
-          movement.category = CategoriesRepository.all['supermercato'];
+          movement.category = CategoriesRepository.find('supermercato');
           return true;
         }
       }
@@ -64,7 +64,7 @@
         || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1) {
         if (movement.description.indexOf('ESSO') > -1
           || movement.description.indexOf('Q8') > -1) {
-          movement.category = CategoriesRepository.all['carburante'];
+          movement.category = CategoriesRepository.find('carburante');
           return true;
         }
       }
@@ -72,7 +72,7 @@
 
     RulesContainer.rule('Voli', function(movement) {
       if (movement.description.indexOf('EASYJET') > -1) {
-        movement.category = CategoriesRepository.all['viaggi'];
+        movement.category = CategoriesRepository.find('viaggi');
         return true;
       }
     });
@@ -80,7 +80,7 @@
     RulesContainer.rule('Ristoranti', function(movement) {
       if (movement.description.indexOf('RISTORAN') > -1
         || movement.description.indexOf('OSTERIA') > -1) {
-        movement.category = CategoriesRepository.all['tempo_libero'];
+        movement.category = CategoriesRepository.find('tempo_libero');
         return true;
       }
     });
@@ -88,35 +88,35 @@
     RulesContainer.rule('Cinema', function(movement) {
       if (movement.description.indexOf('SKYLINE') > -1
         || movement.description.indexOf('UCI MILANO') > -1) {
-        movement.category = CategoriesRepository.all['tempo_libero'];
+        movement.category = CategoriesRepository.find('tempo_libero');
         return true;
       }
     });
 
     RulesContainer.rule('Farmacie', function(movement) {
       if (movement.description.indexOf('FARMACIA') > -1) {
-        movement.category = CategoriesRepository.all['farmaci'];
+        movement.category = CategoriesRepository.find('farmaci');
         return true;
       }
     });
 
     RulesContainer.rule('Abbigliamento', function(movement) {
       if (movement.description.indexOf('GEOX') > -1) {
-        movement.category = CategoriesRepository.all['abbigliamento'];
+        movement.category = CategoriesRepository.find('abbigliamento');
         return true;
       }
     });
 
     RulesContainer.rule('Mutuo', function(movement) {
       if (movement.description.indexOf('RIMBORSO FINANZIAMENTO N.') > -1) {
-        movement.category = CategoriesRepository.all['mutuo'];
+        movement.category = CategoriesRepository.find('mutuo');
         return true;
       }
     });
 
     RulesContainer.rule('Mutuo', function(movement) {
       if (movement.description.indexOf('ADDEBITO SEPA DD') > -1) {
-        movement.category = CategoriesRepository.all['bollette'];
+        movement.category = CategoriesRepository.find('bollette');
         return true;
       }
     });
