@@ -3,12 +3,13 @@
   <h3 class="modal-title">{{ctrl.title}}</h3>
 </div>
 <div class="modal-body" ng-init="movement = ctrl.movement">
-  <desmond-movements-table
-      ng-if="ctrl.movement.originatedFrom && ctrl.movement.originatedBy == 'merge'"
-      selection-enabled="false"
-      movements="ctrl.movement.originatedFrom">
-  </desmond-movements-table>
-
+  <div class="merge text-center" ng-if="ctrl.movement.originatedFrom && ctrl.movement.originatedBy == 'merge'">
+    <desmond-movements-table
+        selection-enabled="false"
+        movements="ctrl.movement.originatedFrom">
+    </desmond-movements-table>
+    <i class="md md-2x md-call-merge" style="transform: rotateX(180deg)"></i>
+  </div>
   <form class="form-horizontal">
     <div class="form-group" ng-if="movement.document">
       <label for="documentBox" class="col-sm-2 control-label">Importato da</label>

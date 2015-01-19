@@ -298,7 +298,7 @@
     newMovement.direction = (amount > 0) ? Movement.DIRECTION_IN : Movement.DIRECTION_OUT;
     newMovement.account = this.selectedItems[0].account;
     newMovement.originatedBy = Movement.ORIGINATED_BY_MERGE;
-    newMovement.originatedFrom = this.selectedItems;
+    newMovement.originatedFrom = [].concat(this.selectedItems);
     newMovement.description = _.pluck(this.selectedItems, 'description').join('\n\n');
     newMovement.category = _.reduce(this.selectedItems, function(cat, movement) {
       if (!movement.category) {
@@ -345,6 +345,7 @@
 
   MainController.prototype.editMovement = function(movement) {
     var Restangular = this.Restangular;
+    var isNew = !movement._id;
     var modal = this.$modal.open({
       templateUrl: 'components/edit_modal.html',
       controller: 'EditModalController as ctrl',
@@ -354,11 +355,26 @@
       resolve: {
         movement: function() {
           // copy the angular movement, mantaining the references to other objects
-          // TODO: move this into the Movement model class
-          var copy = Restangular.copy(movement);
-          var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
+          // TODO: move this into the Movement model class?
+          var copy = null;
+          var LINK_FIELDS = [
+            'document', 'account', 'category', 'source',
+            'sourceMovement', 'destination', 'destinationMovement',
+            'originatedFrom'];
+
+          var savedFields = {};
           _.each(LINK_FIELDS, function (fieldName) {
-            copy[fieldName] = movement[fieldName];
+            savedFields[fieldName] = movement[fieldName];
+            movement[fieldName] = null;
+          });
+          if (isNew) {
+            copy = angular.copy(movement);
+          } else {
+            copy = Restangular.copy(movement);
+          }
+          _.each(LINK_FIELDS, function (fieldName) {
+            copy[fieldName] = savedFields[fieldName];
+            movement[fieldName] = savedFields[fieldName];
           });
           return copy;
         }
@@ -376,7 +392,18 @@
         return editedMovement;
       }
     }).then(function(editedMovement) {
-      return ctrl.movements.save(editedMovement);
+      if (isNew) {
+        // argh...
+        return ctrl.movements.add(editedMovement).then(function() {
+          if (editedMovement.originatedFrom) {
+            editedMovement.originatedFrom.forEach(function(originalMovement) {
+              ctrl.movements.remove(originalMovement);
+            });
+          }
+        });
+      } else {
+        return ctrl.movements.save(editedMovement);
+      }
     });
   };
 
@@ -448,7 +475,7 @@
   MainController.prototype.buildOutgoingByCategoryChart = function() {
     var movements = _.where(this.movements.all, {direction: 'out'});
     var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
-      return !!category;
+      return !category || category._id !== 'casa';
     });
 
     var data = _.sortBy(_.map(categories, function (category) {

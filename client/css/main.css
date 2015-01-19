@@ -63,6 +63,9 @@ img.account {
   top: 0;
   border-top-color: #fff;
 }
+table.table-movements {
+  margin-bottom: 0;
+}
 table.table-movements tbody>tr>th {
   white-space: nowrap;
   padding-top: 0;

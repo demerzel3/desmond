@@ -98,14 +98,14 @@
     return _.find(this.all, {_id: id});
   };
   CategoriesRepository.prototype.add = function(category) {
-     var repo = this;
-     return this.Restangular.all('categories').post(category).then(function(result) {
-       return repo.Restangular.one('categories', result._id).get();
-     }).then(function(newCategory) {
-       repo.all = _.sortBy([newCategory].concat(repo.all), 'name');
-       return newCategory;
-     });
-   };
+    var repo = this;
+    return this.Restangular.all('categories').post(category).then(function(result) {
+      return repo.Restangular.one('categories', result._id).get();
+    }).then(function(newCategory) {
+      repo.all = _.sortBy([newCategory].concat(repo.all), 'name');
+      return newCategory;
+    });
+  };
 
 
 
@@ -217,6 +217,10 @@
   };
   MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];
 
+  MovementsRepository.prototype.find = function(id) {
+    return _.find(this.all, {'_id': id});
+  };
+
   /**
    * Append to movements
    *
@@ -286,72 +290,84 @@
 
   var Model = angular.module('Desmond.Model', ['restangular']);
 
-  Model.run(['Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', function(Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
+  Model.run(['$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
+    function($timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
 
-    var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
+      var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
 
-    // serialize movement and document
-    Restangular.addRequestInterceptor(function(element, operation, what, url) {
-      if (what === 'movements' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
-        var movement = angular.copy(element);
-        movement.date = movement.date.format();
-        movement.executionDate = movement.executionDate.format();
-        _.each(LINK_FIELDS, function (fieldName) {
-          if (movement[fieldName]) {
-            movement[fieldName] = movement[fieldName]._id;
+      // serialize movement and document
+      Restangular.addRequestInterceptor(function(element, operation, what, url) {
+        if (what === 'movements' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
+          var movement = angular.copy(element);
+          movement.date = movement.date.format();
+          movement.executionDate = movement.executionDate.format();
+          _.each(LINK_FIELDS, function (fieldName) {
+            if (movement[fieldName]) {
+              movement[fieldName] = movement[fieldName]._id;
+            }
+          });
+          if (movement.originatedFrom) {
+            movement.originatedFrom = _.pluck(movement.originatedFrom, '_id');
           }
-        });
-        return movement;
-      } else if (what === 'documents' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
-        var document = angular.copy(element);
-        document.date = document.date.format();
-        // the relation is tracked from the movements side
-        delete document.movements;
-        return document;
-      } else {
-        return element;
-      }
-    });
-
-    // unserialize movement
-    Restangular.addElementTransformer('movements', false, function(movement) {
-      movement.date = moment(movement.date);
-      movement.executionDate = moment(movement.executionDate);
-      if (movement.document) {
-        movement.document = DocumentsRepository.find(movement.document);
-        if (movement.document) {
-          movement.document.movements.push(movement);
-        }
-      }
-      if (movement.account) {
-        movement.account = AccountsRepository.find(movement.account);
-      }
-      if (movement.category) {
-        movement.category = CategoriesRepository.find(movement.category);
-      }
-      if (movement.source) {
-        if (movement.source === 'money') {
-          movement.source = AccountsRepository.moneyAccount;
+          return movement;
+        } else if (what === 'documents' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
+          var document = angular.copy(element);
+          document.date = document.date.format();
+          // the relation is tracked from the movements side
+          delete document.movements;
+          return document;
         } else {
-          movement.source = AccountsRepository.find(movement.source);
+          return element;
         }
-      }
-      if (movement.destination) {
-        movement.destination = AccountsRepository.find(movement.destination);
-      }
-      // TODO: add sourceMovement and destinationMovement
-      return movement;
-    });
+      });
 
-    // unserialize document
-    Restangular.addElementTransformer('documents', false, function(document) {
-      document.date = moment(document.date);
-      // movements gets filled in documents when they are loaded, the ids stored in the database are just for reference
-      document.movements = [];
-      return document;
-    });
+      // unserialize movement
+      Restangular.addElementTransformer('movements', false, function(movement) {
+        movement.date = moment(movement.date);
+        movement.executionDate = moment(movement.executionDate);
+        if (movement.document) {
+          movement.document = DocumentsRepository.find(movement.document);
+          if (movement.document) {
+            movement.document.movements.push(movement);
+          }
+        }
+        if (movement.account) {
+          movement.account = AccountsRepository.find(movement.account);
+        }
+        if (movement.category) {
+          movement.category = CategoriesRepository.find(movement.category);
+        }
+        if (movement.source) {
+          if (movement.source === 'money') {
+            movement.source = AccountsRepository.moneyAccount;
+          } else {
+            movement.source = AccountsRepository.find(movement.source);
+          }
+        }
+        if (movement.destination) {
+          movement.destination = AccountsRepository.find(movement.destination);
+        }
+        // originatedFrom is an array of reference to deleted movements, must be loaded independently
+        if (movement.originatedFrom) {
+           $q.all(_.map(movement.originatedFrom, function(movementId) {
+            return Restangular.one('movements', movementId).get();
+          })).then(function(linkedMovements) {
+             movement.originatedFrom = linkedMovements;
+          });
+        }
+        // TODO: add sourceMovement and destinationMovement
+        return movement;
+      });
 
-  }]);
+      // unserialize document
+      Restangular.addElementTransformer('documents', false, function(document) {
+        document.date = moment(document.date);
+        // movements gets filled in documents when they are loaded, the ids stored in the database are just for reference
+        document.movements = [];
+        return document;
+      });
+
+    }]);
 
   // models
   Model.factory('Movement', function() { return Movement; });
