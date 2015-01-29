@@ -21,3 +21,4 @@ node_modules
 .lock-wscript
 client/lib
 restheart-0.9.7
+.vagrant
