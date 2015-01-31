@@ -107,4 +107,27 @@
     }
   });
 
+  Component.directive('colorFromImage', function() {
+    var colorThief = new ColorThief();
+
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        var img = element.find('img').andSelf().filter('img');
+        if (img.length === 0) {
+          return;
+        }
+
+        img.on('load', function() {
+          var color = colorThief.getPalette(img[0], 3)[0];
+          var styleName = attrs.colorFromImage || 'color';
+          console.log(styleName);
+          var style = {};
+          style[styleName] = 'rgb('+color[0]+','+color[1]+','+color[2]+')';
+          element.css(style);
+        });
+      }
+    };
+  });
+
 })(window.jQuery, window.angular);

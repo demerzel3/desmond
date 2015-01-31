@@ -15,6 +15,22 @@
 </head>
 <body vbox ng-controller="MainController as ctrl">
 
+  <hbox id="accounts">
+    <div class="glue"></div>
+    <div class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color">
+      <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"
+           /><br/>
+      {{account.name}}<br/>
+      <!--
+      {{ctrl.movements.all | filter:{account:account} | total | number:2}} €<br/>
+      -->
+    </div>
+    <div class="account account-new">
+      <i class="md md-3x md-add"></i>
+    </div>
+    <div class="glue"></div>
+  </hbox>
+
   <hbox>
     <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
         drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
@@ -154,6 +170,7 @@
     </vbox>
   </hbox>
 
+  <script src="lib/color-thief/dist/color-thief.min.js"></script>
   <script src="lib/spark-md5/spark-md5.min.js"></script>
   <script src="lib/chartjs/Chart.js"></script>
   <script src="lib/moment/min/moment-with-locales.min.js"></script>

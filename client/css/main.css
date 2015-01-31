@@ -167,3 +167,22 @@ textarea[auto-grow] {
   resize: none;
   transition: 0.25s;
 }
+#accounts {
+  background-color: #eee;
+  text-align: center;
+}
+#accounts .account {
+  padding: 10px 20px;
+  color: #fff;
+}
+#accounts .account img {
+  padding: 3px;
+  border-radius: 64px;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+#accounts .account.account-new .md {
+  font-size: 48px;
+  line-height: 64px;
+  color: #333;
+}
