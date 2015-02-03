@@ -13,162 +13,171 @@
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
 </head>
-<body vbox ng-controller="MainController as ctrl">
+<body hbox ng-controller="MainController as ctrl">
 
-  <hbox id="accounts">
-    <div class="glue"></div>
-    <div class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color">
-      <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"
-           /><br/>
-      {{account.name}}<br/>
-      <!--
-      {{ctrl.movements.all | filter:{account:account} | total | number:2}} €<br/>
-      -->
-    </div>
+  <vbox id="accounts">
+    <h2>Patrimonio</h2>
+    <span class="total">{{ctrl.movements.all | total | number:2}} €</span>
+    <hbox class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color" gap="20">
+      <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"/>
+      <vbox gap="5" justify="center" grow="1">
+        <span>{{account.name}}</span>
+        <span>{{ctrl.movements.all | filter:{account:account} | total | number:2}} €</span>
+      </vbox>
+    </hbox>
     <div class="account account-new">
       <i class="md md-3x md-add"></i>
     </div>
-    <div class="glue"></div>
-  </hbox>
+  </vbox>
 
+  <!--
   <hbox>
     <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
         drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
         ng-file-change="ctrl.importFiles(account, $files)"
         multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-        <!-- Trascina qui l'estratto conto (pdf) o la lista movimenti (xls) di IWBank -->
         <img ng-src="{{account.avatarUrl}}" class="account" width="32" height="32" alt="{{account.description}}"/>
         {{account.name}}<br/>
         {{ctrl.movements.all | filter:{account:account} | total | number:2}} €<br/>
       <small class="text-muted">Trascina qui i documenti per importarli</small>
     </div>
   </hbox>
+  -->
 
-  <hbox>
-    <vbox grow="1" class="main-box">
-      <div class="panel panel-default filters">
-        <div class="panel-body">
-          Conto
-          <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-                    ng-class="{'btn-primary': ctrl.filters.account}">
-              {{ctrl.filters.account ? ctrl.filters.account.name : 'Tutti'}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="" ng-click="ctrl.filters.account = null">Tutti</a></li>
-              <li class="divider"></li>
-              <li ng-repeat="account in ctrl.accounts.bankAccounts">
-                <a href="" ng-click="ctrl.filters.account = account">{{account.name}}</a>
-              </li>
-            </ul>
-          </div>
-          &emsp;
-          Origine
-          <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-                ng-class="{'btn-primary': ctrl.filters.source}">
-              {{ctrl.filters.source ? ctrl.filters.source.name : 'Tutte'}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="" ng-click="ctrl.filters.source = null">Tutte</a></li>
-              <li class="divider"></li>
-              <li><a href="" ng-click="ctrl.filters.source = {name: 'Sconosciuta'}">Sconosciuta</a></li>
-              <li class="divider"></li>
-              <li ng-repeat="source in ctrl.sources">
-                <a href="" ng-click="ctrl.filters.source = source">{{source.name}}</a>
-              </li>
-            </ul>
-          </div>
-          &emsp;
-          Destinazione
-          <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-                ng-class="{'btn-primary': ctrl.filters.destination}">
-              {{ctrl.filters.destination ? ctrl.filters.destination.name : 'Tutte'}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="" ng-click="ctrl.filters.destination = null">Tutte</a></li>
-              <li class="divider"></li>
-              <li><a href="" ng-click="ctrl.filters.destination = {name: 'Sconosciuta'}">Sconosciuta</a></li>
-              <li class="divider"></li>
-              <li ng-repeat="destination in ctrl.destinations">
-                <a href="" ng-click="ctrl.filters.destination = destination">{{destination.name}}</a>
-              </li>
-            </ul>
-          </div>
-          &emsp;
-          Categoria
-          <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-                ng-class="{'btn-primary': ctrl.filters.category}">
-              {{ctrl.filters.category ? ctrl.filters.category.name : 'Tutte'}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="" ng-click="ctrl.filters.category = null">Tutte</a></li>
-              <li class="divider"></li>
-              <li><a href="" ng-click="ctrl.filters.category = {name: 'Non assegnata'}">Non assegnata</a></li>
-              <li class="divider"></li>
-              <li ng-repeat="category in ctrl.usedCategories">
-                <a href="" ng-click="ctrl.filters.category = category">{{category.name}}</a>
-              </li>
-            </ul>
-          </div>
-          &emsp;
-          Tipo movimento
-          <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-                ng-class="{'btn-primary': ctrl.filters.direction}">
-              {{ctrl.filters.direction ? (ctrl.filters.direction === 'in' ? 'Entrate' : 'Uscite') : 'Tutti'}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="" ng-click="ctrl.filters.direction = null">Tutti</a></li>
-              <li class="divider"></li>
-              <li><a href="" ng-click="ctrl.filters.direction = 'in'">Entrate</a></li>
-              <li><a href="" ng-click="ctrl.filters.direction = 'out'">Uscite</a></li>
-            </ul>
+  <vbox grow="1">
+    <div shrink="0" style="height: 400px">
+      Grafico
+    </div>
+
+    <hbox grow="1">
+      <vbox grow="1" class="main-box">
+        <div class="panel panel-default filters" shrink="0" grow="0">
+          <div class="panel-body">
+            Conto
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                      ng-class="{'btn-primary': ctrl.filters.account}">
+                {{ctrl.filters.account ? ctrl.filters.account.name : 'Tutti'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="" ng-click="ctrl.filters.account = null">Tutti</a></li>
+                <li class="divider"></li>
+                <li ng-repeat="account in ctrl.accounts.bankAccounts">
+                  <a href="" ng-click="ctrl.filters.account = account">{{account.name}}</a>
+                </li>
+              </ul>
+            </div>
+            &emsp;
+            Origine
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                      ng-class="{'btn-primary': ctrl.filters.source}">
+                {{ctrl.filters.source ? ctrl.filters.source.name : 'Tutte'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="" ng-click="ctrl.filters.source = null">Tutte</a></li>
+                <li class="divider"></li>
+                <li><a href="" ng-click="ctrl.filters.source = {name: 'Sconosciuta'}">Sconosciuta</a></li>
+                <li class="divider"></li>
+                <li ng-repeat="source in ctrl.sources">
+                  <a href="" ng-click="ctrl.filters.source = source">{{source.name}}</a>
+                </li>
+              </ul>
+            </div>
+            &emsp;
+            Destinazione
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                      ng-class="{'btn-primary': ctrl.filters.destination}">
+                {{ctrl.filters.destination ? ctrl.filters.destination.name : 'Tutte'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="" ng-click="ctrl.filters.destination = null">Tutte</a></li>
+                <li class="divider"></li>
+                <li><a href="" ng-click="ctrl.filters.destination = {name: 'Sconosciuta'}">Sconosciuta</a></li>
+                <li class="divider"></li>
+                <li ng-repeat="destination in ctrl.destinations">
+                  <a href="" ng-click="ctrl.filters.destination = destination">{{destination.name}}</a>
+                </li>
+              </ul>
+            </div>
+            &emsp;
+            Categoria
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                      ng-class="{'btn-primary': ctrl.filters.category}">
+                {{ctrl.filters.category ? ctrl.filters.category.name : 'Tutte'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="" ng-click="ctrl.filters.category = null">Tutte</a></li>
+                <li class="divider"></li>
+                <li><a href="" ng-click="ctrl.filters.category = {name: 'Non assegnata'}">Non assegnata</a></li>
+                <li class="divider"></li>
+                <li ng-repeat="category in ctrl.usedCategories">
+                  <a href="" ng-click="ctrl.filters.category = category">{{category.name}}</a>
+                </li>
+              </ul>
+            </div>
+            &emsp;
+            Tipo movimento
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                      ng-class="{'btn-primary': ctrl.filters.direction}">
+                {{ctrl.filters.direction ? (ctrl.filters.direction === 'in' ? 'Entrate' : 'Uscite') : 'Tutti'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="" ng-click="ctrl.filters.direction = null">Tutti</a></li>
+                <li class="divider"></li>
+                <li><a href="" ng-click="ctrl.filters.direction = 'in'">Entrate</a></li>
+                <li><a href="" ng-click="ctrl.filters.direction = 'out'">Uscite</a></li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      {{ctrl.filteredMovements.length}} movimenti
 
-      <div class="panel panel-selection" ng-show="ctrl.selectedItems.length > 0" ui-scrollfix>
-        <div class="panel-body" hbox gap="15">
-          <a href ng-click="ctrl.toggleAllSelection()">
-            <i class="md md-lg"
-               ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
-          </a>
-          <span>{{ctrl.selectedItems.length}} Selezionati</span>
-          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length < 2" ng-click="ctrl.mergeSelected()">
-            <i class="md md-call-merge md-lg"></i> Unisci
-          </button>
-          <button class="btn btn-default" ng-click="ctrl.deleteSelected()">
-            <i class="md md-delete md-lg"></i> Elimina
-          </button>
-          <div grow="1" class="text-right">
-            <a href ng-click="ctrl.selectedItems = []"><i class="md md-close md-lg"></i></a>
+        <div shrink="0">
+          {{ctrl.filteredMovements.length}} movimenti
+        </div>
+
+        <div class="panel panel-selection" ng-show="ctrl.selectedItems.length > 0" ui-scrollfix>
+          <div class="panel-body" hbox gap="15">
+            <a href ng-click="ctrl.toggleAllSelection()">
+              <i class="md md-lg"
+                 ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
+            </a>
+            <span>{{ctrl.selectedItems.length}} Selezionati</span>
+            <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length < 2" ng-click="ctrl.mergeSelected()">
+              <i class="md md-call-merge md-lg"></i> Unisci
+            </button>
+            <button class="btn btn-default" ng-click="ctrl.deleteSelected()">
+              <i class="md md-delete md-lg"></i> Elimina
+            </button>
+            <div grow="1" class="text-right">
+              <a href ng-click="ctrl.selectedItems = []"><i class="md md-close md-lg"></i></a>
+            </div>
           </div>
         </div>
-      </div>
 
-      <desmond-movements-table movements="ctrl.filteredMovements"
-                               selected-items="ctrl.selectedItems"
-                               replace-movement-enabled="true"
-                               on-replace-movement="ctrl.replaceMovement($movement, $file)"
-                               edit-enabled="true"
-                               on-edit="ctrl.editMovement($movement)">
-      </desmond-movements-table>
-    </vbox>
+        <desmond-movements-table movements="ctrl.filteredMovements"
+                                 selected-items="ctrl.selectedItems"
+                                 replace-movement-enabled="true"
+                                 on-replace-movement="ctrl.replaceMovement($movement, $file)"
+                                 edit-enabled="true"
+                                 on-edit="ctrl.editMovement($movement)">
+        </desmond-movements-table>
+      </vbox>
 
-    <vbox shrink="0" grow="0" class="text-center">
-      <strong>Origine patrimonio</strong>
-      <div id="incomingBySourceChartContainer">
-      </div>
-      <hr/>
-      <strong>Categorie di spesa</strong>
-      <div id="outgoingByCategoryChartContainer">
-      </div>
-    </vbox>
-  </hbox>
+      <vbox shrink="0" grow="0" class="text-center" style="display: none">
+        <strong>Origine patrimonio</strong>
+        <div id="incomingBySourceChartContainer">
+        </div>
+        <hr/>
+        <strong>Categorie di spesa</strong>
+        <div id="outgoingByCategoryChartContainer">
+        </div>
+      </vbox>
+    </hbox>
+  </vbox>
 
   <script src="lib/color-thief/dist/color-thief.min.js"></script>
   <script src="lib/spark-md5/spark-md5.min.js"></script>

@@ -9,6 +9,11 @@ $color7 = #9900FF
 $text-color = #333
 $selection-color = #d8ebf6
 
+html, body {
+  width 100%
+  height 100%
+}
+
 .sweet-alert h2 {
   line-height normal
 }
@@ -50,6 +55,8 @@ $selection-color = #d8ebf6
 
 .main-box {
   //position: relative;
+  overflow scroll
+  -webkit-overflow-scrolling touch
 }
 
 img.account {
@@ -214,18 +221,27 @@ textarea[auto-grow] {
 }
 
 #accounts {
+  width 200px
   background-color #eee
   //padding 10px
   text-align center
+
+  h2 {
+    text-transform uppercase
+    font-size 1em
+  }
+
+  .total {
+    margin-bottom 10px
+  }
+
   .account {
     padding: 10px 20px
-    //border-radius 5px
     color white
     img {
       padding 3px
       border-radius 64px
       background-color white
-      margin-bottom: 10px
     }
 
     &.account-new {
