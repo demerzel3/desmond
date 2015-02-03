@@ -85,7 +85,7 @@
         swal({
           title: 'File già importato',
           html: 'Sembra che tu abbia già importato <strong>' + file.name + '</strong>, eseguire di nuovo l\'importazione potrebbe creare movimenti duplicati.\n'
-            + 'Come vuoi procedere?',
+          + 'Come vuoi procedere?',
           type: "info",
           allowOutsideClick: true,
           showCancelButton: true,
@@ -429,6 +429,7 @@
   MainController.prototype.refreshCharts = function() {
     this.buildIncomingBySourceChart();
     this.buildOutgoingByCategoryChart();
+    this.buildOutgoingByCategoryByMonthChart();
   };
   /**
    * Creates a chart inside the specified container, removing the one already in the container (if exists)
@@ -497,6 +498,130 @@
     this.createChart('outgoingByCategoryChartContainer').Doughnut(data, {
       animation: false,
       tooltipTemplate: 'label + " " + (value | number:2) + " €"'
+    });
+  };
+
+  MainController.prototype.buildOutgoingByCategoryByMonthChart = function() {
+
+    //var months = {};
+    /*
+    var months = _.uniq(this.movements.all.map(function(movement) {
+      return movement.date.format('YYYY-MM');
+    }));
+    console.log(months);
+    */
+
+    var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
+      return !movement.destination || 'bank_account' !== movement.destination.type;
+    });
+
+    var months = [/*"2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06",*/
+      "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12"];
+    var monthsIndexMap = _.invert(months);
+    months = months.map(function(month) {
+      return {
+        id: month,
+        label: moment(month, 'YYYY-MM').format('MMM-YY')
+      }
+    });
+
+    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
+      return !category || category._id !== 'casa';
+    });
+    categories = categories.map(function(category, index) {
+      return {
+        _id: category ? category._id : null,
+        name: category ? category.name : 'Non Impostata',
+        data: months.map(function() { return 0 }),
+        total: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
+          return sum - movement.amount;
+        }, 0)
+      }
+    });
+    categories = _.sortBy(categories, 'total');
+
+
+    categories.forEach(function(category, index) {
+      category.color = CHART_COLORS[(categories.length - index - 1) % CHART_COLORS.length];
+      var catMovements = _.filter(movements, function(movement) {
+        return (!movement.category && category._id == null)
+          || (movement.category && movement.category._id === category._id);
+      });
+      catMovements.forEach(function(movement) {
+        var monthKey = movement.date.format('YYYY-MM');
+        var index = monthsIndexMap[monthKey];
+        if (!_.isUndefined(index)) {
+          category.data[index] += -movement.amount;
+        }
+      });
+    });
+
+    console.log(categories);
+
+    var chart = $('#testChart').highcharts({
+      chart: {
+        type: 'column'
+      },
+      title: {
+        text: 'Spese per categoria'
+      },
+      xAxis: {
+        categories: _.map(months, function(month) {
+          return month.label
+        })
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          //text: 'Spese per categoria'
+        },
+        stackLabels: {
+          enabled: true,
+          style: {
+            fontWeight: 'bold',
+            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+          }
+        }
+      },
+      //legend: false,
+      /*
+      legend: {
+        align: 'right',
+        x: -30,
+        verticalAlign: 'top',
+        y: 25,
+        floating: true,
+        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+        borderColor: '#CCC',
+        borderWidth: 1,
+        shadow: false
+      },
+      */
+      tooltip: {
+        shadow: false,
+        borderColor: '#eeeeee',
+        borderWidth: 3,
+        formatter: function () {
+          if (this.y > 0) {
+            return this.series.name + ': ' + this.y.toFixed(2) + ' €<br/>';
+          } else {
+            return false;
+          }
+        }
+      },
+      plotOptions: {
+        column: {
+          stacking: 'normal',
+          dataLabels: {
+            enabled: false,
+            color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+            style: {
+              textShadow: '0 0 3px black'
+            }
+          }
+        }
+      },
+      series: categories
     });
   };
 
