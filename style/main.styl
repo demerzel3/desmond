@@ -38,19 +38,49 @@ html, body {
 }
 
 .drop-box {
-
   padding: 20px
-  border: dashed 1px #ccc
+  margin 0 10px
+  //border: dashed 1px #ccc
+  border-radius 5px
+  font-size 2em
+  color $text-color
+  background-color rgba(white, 0.7)
+  box-shadow 0 0 0 transparent
+  transition-duration 0.5s
+  transition-property background-color box-shadow margin
 
-  &.dragover {
-    border-style: solid
-    background-color: greenyellow
-  }
-  &.dragover-err {
-    border-style: solid
-    background-color: red
+  img.account {
+    width 128px
+    height 128px
+    border-radius 128px
+    background-color white
+    border solid 5px white
+    margin-bottom 10px
   }
 
+  &.dragover, &.dragover-err {
+    background-color rgba(white, 0.95)
+    box-shadow 0 0 10px white
+    margin 0 15px
+    transform scale(1.1, 1.1)
+  }
+}
+
+.drop-screen {
+  display none
+}
+
+body.dragover {
+  .drop-screen {
+    display block
+    position absolute
+    top 0
+    left 0
+    width 100%
+    height 100%
+    background-color rgba(#000, 0.5)
+    z-index 1000
+  }
 }
 
 .main-box {

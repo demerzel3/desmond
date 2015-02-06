@@ -13,9 +13,23 @@
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
 </head>
-<body hbox ng-controller="MainController as ctrl">
+<body hbox ng-controller="MainController as ctrl" drag-over-screen>
 
-  <vbox id="accounts">
+  <div class="drop-screen">
+    <hbox style="width: 100%; height: 100%" align="center">
+      <div class="glue"></div>
+      <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
+          drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+          ng-file-change="ctrl.importFiles(account, $files)"
+          multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+          <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
+          {{account.name}}
+      </div>
+      <div class="glue"></div>
+    </hbox>
+  </div>
+
+  <vbox id="accounts" shrink="0">
     <h2>Patrimonio</h2>
     <span class="total">{{ctrl.movements.all | total | number:2}} €</span>
     <hbox class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color" gap="20">
@@ -29,20 +43,6 @@
       <i class="md md-3x md-add"></i>
     </div>
   </vbox>
-
-  <!--
-  <hbox>
-    <div ng-file-drop grow="1" ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
-        drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-        ng-file-change="ctrl.importFiles(account, $files)"
-        multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-        <img ng-src="{{account.avatarUrl}}" class="account" width="32" height="32" alt="{{account.description}}"/>
-        {{account.name}}<br/>
-        {{ctrl.movements.all | filter:{account:account} | total | number:2}} €<br/>
-      <small class="text-muted">Trascina qui i documenti per importarli</small>
-    </div>
-  </hbox>
-  -->
 
   <vbox grow="1">
     <div id="testChart" shrink="0" style="height: 400px">

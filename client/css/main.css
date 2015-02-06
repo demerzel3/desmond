@@ -23,15 +23,42 @@ body {
 }
 .drop-box {
   padding: 20px;
-  border: dashed 1px #ccc;
+  margin: 0 10px;
+  border-radius: 5px;
+  font-size: 2em;
+  color: #333;
+  background-color: rgba(255,255,255,0.7);
+  box-shadow: 0 0 0 transparent;
+  transition-duration: 0.5s;
+  transition-property: background-color box-shadow margin;
 }
-.drop-box.dragover {
-  border-style: solid;
-  background-color: #adff2f;
+.drop-box img.account {
+  width: 128px;
+  height: 128px;
+  border-radius: 128px;
+  background-color: #fff;
+  border: solid 5px #fff;
+  margin-bottom: 10px;
 }
+.drop-box.dragover,
 .drop-box.dragover-err {
-  border-style: solid;
-  background-color: #f00;
+  background-color: rgba(255,255,255,0.95);
+  box-shadow: 0 0 10px #fff;
+  margin: 0 15px;
+  transform: scale(1.1, 1.1);
+}
+.drop-screen {
+  display: none;
+}
+body.dragover .drop-screen {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
 }
 .main-box {
   overflow: scroll;
