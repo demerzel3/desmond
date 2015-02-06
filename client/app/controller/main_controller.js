@@ -1,10 +1,11 @@
 (function($, angular) {
 
-  var MainController = function($scope, $q, $injector, $modal, Restangular, FileHasher, RulesContainer, Movement,
+  var MainController = function($scope, $q, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
                                 DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
+    this.$state = $state;
     this.Restangular = Restangular;
     this.FileHasher = FileHasher;
     this.Movement = Movement;
@@ -45,7 +46,7 @@
     });
   };
   MainController.$inject = [
-    '$scope', '$q', '$injector', '$modal', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
+    '$scope', '$q', '$injector', '$modal', '$state', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
     'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
 
   MainController.prototype.importFiles = function(account, files) {
@@ -502,6 +503,7 @@
   };
 
   MainController.prototype.buildOutgoingByCategoryByMonthChart = function() {
+    var $state = this.$state;
     var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
       return !movement.destination || 'bank_account' !== movement.destination.type;
     });
@@ -616,7 +618,10 @@
           },
           events: {
             click: function(event) {
-              console.log('month:', months[event.point.index], 'category:', categories[this.index]);
+              var month = months[event.point.index];
+              var category = categories[this.index];
+              console.log('month:', month, 'category:', category);
+              $state.go('month', {month: month.id, cat: category._id});
             }
           }
         },

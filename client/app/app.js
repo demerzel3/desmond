@@ -10,10 +10,33 @@
   };
 
   var Desmond = angular.module('Desmond', [
-    'ngSanitize', 'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
+    'ngSanitize',
+    'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
     'autoGrow',
-    'ui.utils', 'ui.bootstrap',
+    'ui.router', 'ui.utils', 'ui.bootstrap',
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
+  ]);
+
+  Desmond.config(['$stateProvider', '$locationProvider', '$urlRouterProvider',
+    function($stateProvider, $locationProvider, $urlRouterProvider) {
+      $locationProvider.html5Mode(true);
+      $urlRouterProvider.otherwise("/");
+
+      $stateProvider
+        .state('home', {
+          url: '/',
+          templateUrl: 'views/home.html',
+          controller: 'MainController',
+          controllerAs: 'ctrl'
+        })
+        .state('month', {
+          url: '/months/{month}?cat',
+          templateUrl: 'views/month.html',
+          controller: 'MonthController',
+          controllerAs: 'ctrl'
+        })
+      ;
+    }
   ]);
 
   Desmond.filter('total', function() {
@@ -30,10 +53,6 @@
       var getter = $parse(tpl);
       return getter(data);
     };
-  }]);
-
-  Desmond.config(['$locationProvider', function($locationProvider) {
-    $locationProvider.html5Mode(true);
   }]);
 
   Desmond.run(['Restangular', '$location', 'PageMetadata', function(Restangular, $location, PageMetadata) {
