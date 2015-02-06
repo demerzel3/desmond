@@ -502,15 +502,6 @@
   };
 
   MainController.prototype.buildOutgoingByCategoryByMonthChart = function() {
-
-    //var months = {};
-    /*
-    var months = _.uniq(this.movements.all.map(function(movement) {
-      return movement.date.format('YYYY-MM');
-    }));
-    console.log(months);
-    */
-
     var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
       return !movement.destination || 'bank_account' !== movement.destination.type;
     });
@@ -540,7 +531,6 @@
     });
     categories = _.sortBy(categories, 'total');
 
-
     categories.forEach(function(category, index) {
       category.color = CHART_COLORS[(categories.length - index - 1) % CHART_COLORS.length];
       var catMovements = _.filter(movements, function(movement) {
@@ -556,47 +546,52 @@
       });
     });
 
-    console.log(categories);
-
-    var chart = $('#testChart').highcharts({
+    $('#outgoingByCategoryByMonthChartContainer').highcharts({
       chart: {
-        type: 'column'
+        type: 'column',
+        marginTop: 30,
+        spacingLeft: 20,
+        marginRight: 20,
+        style: {
+          fontFamily: 'Open Sans',
+          fontWeight: 200
+        }
       },
-      title: {
-        text: 'Spese per categoria'
-      },
+      title: false,
       xAxis: {
         categories: _.map(months, function(month) {
           return month.label
-        })
+        }),
+        tickLength: null,
+        lineWidth: 0
       },
       yAxis: {
         min: 0,
-        title: {
-          //text: 'Spese per categoria'
+        title: false,
+        labels: {
+          style: {
+            color: '#cccccc'
+          },
+          formatter: function() {
+            if (this.value > 0) {
+              return this.value + ' €';
+            }
+          }
         },
         stackLabels: {
           enabled: true,
           style: {
-            fontWeight: 'bold',
-            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+            fontWeight: 200,
+            fontSize: '16px',
+            color: '#333333'
+          },
+          formatter: function() {
+            return this.total.toFixed(2) + ' €';
           }
-        }
+        },
+        gridLineColor: '#eeeeee'
       },
-      //legend: false,
-      /*
-      legend: {
-        align: 'right',
-        x: -30,
-        verticalAlign: 'top',
-        y: 25,
-        floating: true,
-        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
-        borderColor: '#CCC',
-        borderWidth: 1,
-        shadow: false
-      },
-      */
+      legend: false,
       tooltip: {
         shadow: false,
         borderColor: '#eeeeee',
@@ -623,6 +618,7 @@
       },
       series: categories
     });
+    $('svg > text:contains("Highcharts.com")').remove();
   };
 
   angular.module('Desmond').controller('MainController', MainController);
