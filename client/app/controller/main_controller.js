@@ -613,7 +613,15 @@
             style: {
               textShadow: '0 0 3px black'
             }
+          },
+          events: {
+            click: function(event) {
+              console.log('month:', months[event.point.index], 'category:', categories[this.index]);
+            }
           }
+        },
+        series: {
+          cursor: 'pointer'
         }
       },
       series: categories

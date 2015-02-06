@@ -27,6 +27,7 @@ body {
   margin: 0 10px;
   border-radius: 5px;
   font-size: 2em;
+  font-weight: 200;
   color: #333;
   background-color: rgba(255,255,255,0.7);
   box-shadow: 0 0 0 transparent;
@@ -231,4 +232,11 @@ textarea[auto-grow] {
   font-size: 48px;
   line-height: 64px;
   color: #333;
+}
+#header {
+  padding: 0 20px;
+}
+#header h2 {
+  text-transform: uppercase;
+  font-size: 1em;
 }
