@@ -17,28 +17,6 @@
     'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
   ]);
 
-  Desmond.config(['$stateProvider', '$locationProvider', '$urlRouterProvider',
-    function($stateProvider, $locationProvider, $urlRouterProvider) {
-      $locationProvider.html5Mode(true);
-      $urlRouterProvider.otherwise("/");
-
-      $stateProvider
-        .state('home', {
-          url: '/',
-          templateUrl: 'views/home.html',
-          controller: 'MainController',
-          controllerAs: 'ctrl'
-        })
-        .state('month', {
-          url: '/months/{month}?cat',
-          templateUrl: 'views/month.html',
-          controller: 'MonthController',
-          controllerAs: 'ctrl'
-        })
-      ;
-    }
-  ]);
-
   Desmond.filter('total', function() {
     return function(movements) {
       return _.reduce(movements, function(total, movement) {

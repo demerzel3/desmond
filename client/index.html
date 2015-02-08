@@ -13,30 +13,28 @@
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
   <link href="css/main.css" rel="stylesheet"/>
 </head>
-<body hbox ng-controller="MainController as ctrl" drag-over-screen>
+<body hbox drag-over-screen>
 
-  <div class="drop-screen">
-    <hbox style="width: 100%; height: 100%" align="center">
-      <div class="glue"></div>
-      <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
-          drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-          ng-file-change="ctrl.importFiles(account, $files)"
-          multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-          <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
-          {{account.name}}
-      </div>
-      <div class="glue"></div>
-    </hbox>
-  </div>
+  <hbox style="width: 100%; height: 100%" align="center" class="drop-screen">
+    <div class="glue"></div>
+    <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
+        drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+        ng-file-change="ctrl.importFiles(account, $files)"
+        multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+        <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
+        {{account.name}}
+    </div>
+    <div class="glue"></div>
+  </hbox>
 
-  <vbox id="accounts" shrink="0">
+  <vbox id="accounts" shrink="0" ng-controller="SidebarController as ctrl">
     <h2>Patrimonio</h2>
     <span class="total">{{ctrl.movements.all | total | number:2}} €</span>
     <hbox class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color" gap="20">
       <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"/>
       <vbox gap="5" justify="center" grow="1">
         <span>{{account.name}}</span>
-        <span>{{ctrl.movements.all | filter:{account:account} | total | number:2}} €</span>
+        <span>{{ctrl.movements.all | filter:{ account: { _id: account._id } }:true | total | number:2}} €</span>
       </vbox>
     </hbox>
     <div class="account account-new">
@@ -44,7 +42,7 @@
     </div>
   </vbox>
 
-  <div ui-view grow="1"></div>
+  <div ui-view grow="1" class="flexbox vbox"></div>
 
   <script src="lib/color-thief/dist/color-thief.min.js"></script>
   <script src="lib/spark-md5/spark-md5.min.js"></script>
@@ -74,9 +72,11 @@
   <script src="app/rules.js"></script>
   <script src="app/reader.js"></script>
   <script src="app/app.js"></script>
+  <script src="app/routing.js"></script>
   <script src="app/controller/meta_controller.js"></script>
   <script src="app/controller/month_controller.js"></script>
-  <script src="app/controller/main_controller.js"></script>
+  <script src="app/controller/home_controller.js"></script>
+  <script src="app/controller/sidebar_controller.js"></script>
   <script src="app/controller/import_modal_controller.js"></script>
   <script src="app/controller/edit_modal_controller.js"></script>
 </body>

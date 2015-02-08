@@ -1,6 +1,6 @@
 (function($, angular) {
 
-  var MainController = function($scope, $q, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
+  var HomeController = function($scope, $q, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
                                 DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
     this.$q = $q;
     this.$injector = $injector;
@@ -44,12 +44,19 @@
       }
       ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
     });
+
+    // initialization
+    if (this.movements.all.length > 0) {
+      ctrl.updateFilters();
+      ctrl.refreshCharts();
+      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
+    }
   };
-  MainController.$inject = [
+  HomeController.$inject = [
     '$scope', '$q', '$injector', '$modal', '$state', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
     'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
 
-  MainController.prototype.importFiles = function(account, files) {
+  HomeController.prototype.importFiles = function(account, files) {
     var ctrl = this;
     //console.log('Importing files for ', account.name);
     _.each(files, function(file) {
@@ -73,7 +80,7 @@
     });
   };
 
-  MainController.prototype.readFile = function(file, readerName) {
+  HomeController.prototype.readFile = function(file, readerName) {
     var $q = this.$q;
     var reader = this.$injector.get(readerName);
     var documents = this.documents;
@@ -106,14 +113,14 @@
     });
   };
 
-  MainController.prototype.applyAllRules = function(movements) {
+  HomeController.prototype.applyAllRules = function(movements) {
     var RulesContainer = this.RulesContainer;
     _.each(movements, function(movement) {
       RulesContainer.applyAll(movement);
     });
   };
 
-  MainController.prototype.importFile = function(account, file, readerName) {
+  HomeController.prototype.importFile = function(account, file, readerName) {
     var ctrl = this;
     this.readFile(file, readerName).then(function(document) {
       _.each(document.movements, function(movement) {
@@ -124,7 +131,7 @@
     });
   };
 
-  MainController.prototype.replaceMovement = function(movement, file) {
+  HomeController.prototype.replaceMovement = function(movement, file) {
     var ctrl = this;
     this.readFile(file, movement.replaceable.reader).then(function(document) {
       if (movement.replaceable.checker) {
@@ -147,7 +154,7 @@
     });
   };
 
-  MainController.prototype.appendMovements = function(document) {
+  HomeController.prototype.appendMovements = function(document) {
     this.applyAllRules(document.movements);
 
     var modal = this.$modal.open({
@@ -174,7 +181,7 @@
     });
   };
 
-  MainController.prototype.updateFilters = function() {
+  HomeController.prototype.updateFilters = function() {
     // extract sources (for filters)
     var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
@@ -202,7 +209,7 @@
     this.usedCategories = _.sortBy(categories, 'name');
   };
 
-  MainController.prototype.toggleAllSelection = function() {
+  HomeController.prototype.toggleAllSelection = function() {
     if (this.selectedItems.length < this.filteredMovements.length) {
       this.selectedItems = [].concat(this.filteredMovements);
     } else {
@@ -210,7 +217,7 @@
     }
   };
 
-  MainController.prototype.movementsFilterFunction = function(movement) {
+  HomeController.prototype.movementsFilterFunction = function(movement) {
     var filters = this.filters;
     if (filters.source) {
       if (movement.direction !== 'in') {
@@ -256,7 +263,7 @@
     return true;
   };
 
-  MainController.prototype.deleteSelected = function(message) {
+  HomeController.prototype.deleteSelected = function(message) {
     message = message || 'Eliminare i movimenti selezionati?';
     var ctrl = this;
     swal({
@@ -276,7 +283,7 @@
     });
   };
 
-  MainController.prototype.mergeSelected = function() {
+  HomeController.prototype.mergeSelected = function() {
     // can only be from the same account
     if (_.uniq(_.pluck(this.selectedItems, 'account')).length > 1) {
       sweetAlert('Oops..', 'Non puoi unire movimenti di conti diversi, seleziona solo movimenti dello stesso conto.');
@@ -344,7 +351,7 @@
     this.editMovement(newMovement);
   };
 
-  MainController.prototype.editMovement = function(movement) {
+  HomeController.prototype.editMovement = function(movement) {
     var Restangular = this.Restangular;
     var isNew = !movement._id;
     var modal = this.$modal.open({
@@ -427,7 +434,7 @@
     '#DDDDDD',
     '#DDDDDD'
   ];
-  MainController.prototype.refreshCharts = function() {
+  HomeController.prototype.refreshCharts = function() {
     this.buildIncomingBySourceChart();
     this.buildOutgoingByCategoryChart();
     this.buildOutgoingByCategoryByMonthChart();
@@ -437,7 +444,7 @@
    *
    * @param containerId
    */
-  MainController.prototype.createChart = function(containerId) {
+  HomeController.prototype.createChart = function(containerId) {
     var container = $('#'+containerId);
     if (container.find('canvas').length > 0) {
       container.find('canvas').remove();
@@ -446,7 +453,7 @@
     container.append(canvas);
     return new Chart(canvas.get(0).getContext('2d'));
   };
-  MainController.prototype.buildIncomingBySourceChart = function() {
+  HomeController.prototype.buildIncomingBySourceChart = function() {
     var movements = _.where(this.movements.all, {direction: 'in'});
     var sources = _.uniq(_.map(movements, function(movement) {
       return movement.source;
@@ -474,7 +481,7 @@
     });
   };
 
-  MainController.prototype.buildOutgoingByCategoryChart = function() {
+  HomeController.prototype.buildOutgoingByCategoryChart = function() {
     var movements = _.where(this.movements.all, {direction: 'out'});
     var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
       return !category || category._id !== 'casa';
@@ -489,7 +496,7 @@
             return sum - movement.amount;
           }
         }, 0),
-        label: category ? category.name : 'Non impostata'
+        label: category ? category.name : 'Non assegnata'
       };
     }), 'value').reverse();
     _.each(data, function (dataItem, index) {
@@ -502,7 +509,7 @@
     });
   };
 
-  MainController.prototype.buildOutgoingByCategoryByMonthChart = function() {
+  HomeController.prototype.buildOutgoingByCategoryByMonthChart = function() {
     var $state = this.$state;
     var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
       return !movement.destination || 'bank_account' !== movement.destination.type;
@@ -524,7 +531,7 @@
     categories = categories.map(function(category, index) {
       return {
         _id: category ? category._id : null,
-        name: category ? category.name : 'Non Impostata',
+        name: category ? category.name : 'Non assegnata',
         data: months.map(function() { return 0 }),
         total: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
           return sum - movement.amount;
@@ -634,6 +641,6 @@
     $('svg > text:contains("Highcharts.com")').remove();
   };
 
-  angular.module('Desmond').controller('MainController', MainController);
+  angular.module('Desmond').controller('HomeController', HomeController);
 
 })(window.jQuery, window.angular);

@@ -51,9 +51,6 @@ body {
 }
 .drop-screen {
   display: none;
-}
-body.dragover .drop-screen {
-  display: block;
   position: absolute;
   top: 0;
   left: 0;
@@ -61,6 +58,9 @@ body.dragover .drop-screen {
   height: 100%;
   background-color: rgba(0,0,0,0.5);
   z-index: 1000;
+}
+body.dragover .drop-screen {
+  display: flex;
 }
 .main-box {
   overflow: scroll;

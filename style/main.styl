@@ -70,18 +70,18 @@ html, body {
 
 .drop-screen {
   display none
+  position absolute
+  top 0
+  left 0
+  width 100%
+  height 100%
+  background-color rgba(#000, 0.5)
+  z-index 1000
 }
 
 body.dragover {
   .drop-screen {
-    display block
-    position absolute
-    top 0
-    left 0
-    width 100%
-    height 100%
-    background-color rgba(#000, 0.5)
-    z-index 1000
+    display flex
   }
 }
 
