@@ -3,7 +3,19 @@
     <h2>Spese per categoria<!-- <i class="md md-arrow-drop-down"></i> --></h2>
   </div>
 
-  <div id="outgoingByCategoryByMonthChartContainer" shrink="0" style="height: 300px"></div>
+  <hbox shrink="0" style="height: 300px">
+    <div id="outgoingByCategoryByMonthChartContainer" grow="1">
+
+    </div>
+    <div class="legend" ng-init="stat = ctrl.statistics.outgoingByCategoryByMonth" shrink="0" style="width: 200px">
+      <ul>
+        <li ng-repeat="category in stat.categories">
+          <i class="md md-lens md-lg" ng-style="{color: category.color}"></i>
+          {{category.name}}
+        </li>
+      </ul>
+    </div>
+  </hbox>
 
   <hbox grow="1">
     <vbox grow="1" class="main-box">

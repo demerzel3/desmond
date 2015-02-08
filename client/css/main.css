@@ -240,3 +240,8 @@ textarea[auto-grow] {
   text-transform: uppercase;
   font-size: 1em;
 }
+.legend ul {
+  list-style-type: none;
+  padding: 20px 0 0 0;
+  margin: 0;
+}

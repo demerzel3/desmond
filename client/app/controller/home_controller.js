@@ -1,7 +1,8 @@
 (function($, angular) {
 
-  var HomeController = function($scope, $q, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
-                                DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
+  var HomeController = function($scope, $q, $timeout, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
+                                DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository,
+                                Statistics) {
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
@@ -14,6 +15,7 @@
     this.categories = CategoriesRepository;
     this.accounts = AccountsRepository;
     this.movements = MovementsRepository;
+    this.statistics = Statistics;
     this.filteredMovements = null;
     this.files = [];
     this.sources = [];
@@ -34,7 +36,7 @@
         return;
       }
       ctrl.updateFilters();
-      ctrl.refreshCharts();
+      ctrl.refreshCharts(true);
       ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction, ctrl);
     });
 
@@ -47,14 +49,18 @@
 
     // initialization
     if (this.movements.all.length > 0) {
-      ctrl.updateFilters();
-      ctrl.refreshCharts();
-      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
+      // deferred to allow the rendering of the spaces
+      $timeout(function() {
+        ctrl.updateFilters();
+        ctrl.refreshCharts(false);
+        ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
+      });
     }
   };
   HomeController.$inject = [
-    '$scope', '$q', '$injector', '$modal', '$state', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
-    'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository'];
+    '$scope', '$q', '$timeout', '$injector', '$modal', '$state', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
+    'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
+    'Statistics'];
 
   HomeController.prototype.importFiles = function(account, files) {
     var ctrl = this;
@@ -434,7 +440,10 @@
     '#DDDDDD',
     '#DDDDDD'
   ];
-  HomeController.prototype.refreshCharts = function() {
+  HomeController.prototype.refreshCharts = function(refreshStats) {
+    if (refreshStats) {
+      this.statistics.refresh();
+    }
     this.buildIncomingBySourceChart();
     this.buildOutgoingByCategoryChart();
     this.buildOutgoingByCategoryByMonthChart();
@@ -511,49 +520,7 @@
 
   HomeController.prototype.buildOutgoingByCategoryByMonthChart = function() {
     var $state = this.$state;
-    var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
-      return !movement.destination || 'bank_account' !== movement.destination.type;
-    });
-
-    var months = [/*"2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06",*/
-      "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01"];
-    var monthsIndexMap = _.invert(months);
-    months = months.map(function(month) {
-      return {
-        id: month,
-        label: moment(month, 'YYYY-MM').format('MMM-YY')
-      }
-    });
-
-    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
-      return !category || category._id !== 'casa';
-    });
-    categories = categories.map(function(category, index) {
-      return {
-        _id: category ? category._id : null,
-        name: category ? category.name : 'Non assegnata',
-        data: months.map(function() { return 0 }),
-        total: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
-          return sum - movement.amount;
-        }, 0)
-      }
-    });
-    categories = _.sortBy(categories, 'total');
-
-    categories.forEach(function(category, index) {
-      category.color = CHART_COLORS[(categories.length - index - 1) % CHART_COLORS.length];
-      var catMovements = _.filter(movements, function(movement) {
-        return (!movement.category && category._id == null)
-          || (movement.category && movement.category._id === category._id);
-      });
-      catMovements.forEach(function(movement) {
-        var monthKey = movement.date.format('YYYY-MM');
-        var index = monthsIndexMap[monthKey];
-        if (!_.isUndefined(index)) {
-          category.data[index] += -movement.amount;
-        }
-      });
-    });
+    var stat = this.statistics.outgoingByCategoryByMonth;
 
     $('#outgoingByCategoryByMonthChartContainer').highcharts({
       chart: {
@@ -568,7 +535,7 @@
       },
       title: false,
       xAxis: {
-        categories: _.map(months, function(month) {
+        categories: _.map(stat.months, function(month) {
           return month.label
         }),
         tickLength: null,
@@ -625,8 +592,8 @@
           },
           events: {
             click: function(event) {
-              var month = months[event.point.index];
-              var category = categories[this.index];
+              var month = stat.months[event.point.index];
+              var category = stat.categories[this.index];
               console.log('month:', month, 'category:', category);
               $state.go('month', {month: month.id, cat: category._id});
             }
@@ -636,7 +603,7 @@
           cursor: 'pointer'
         }
       },
-      series: categories
+      series: [].concat(stat.categories).reverse()
     });
     $('svg > text:contains("Highcharts.com")').remove();
   };

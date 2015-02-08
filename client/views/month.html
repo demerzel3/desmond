@@ -1,1 +1,36 @@
-<h1>Month!</h1>
+<vbox grow="1">
+
+  <div id="header" shrink="0">
+    <h2>Spese per categoria {{ctrl.month}}</h2>
+  </div>
+
+  <hbox grow="1">
+
+    <vbox shrink="0" style="width: 200px">
+
+      <div ng-repeat="category in ctrl.categories"
+           ng-style="{flexGrow: category.monthTotal/ctrl.total, backgroundColor: category.color}"
+           style="border-bottom: solid 1px white; color: white; min-height: 20px"
+          >
+        {{category.name}} <!-- {{category.monthTotal}}/{{ctrl.total}} -->
+      </div>
+
+    </vbox>
+
+    <div style="width: 50px" class="funnel" shrink="0">
+
+    </div>
+
+    <vbox grow="1" class="main-box">
+      <desmond-movements-table movements="ctrl.filteredMovements"
+                               selected-items="ctrl.selectedItems"
+                               replace-movement-enabled="true"
+                               on-replace-movement="ctrl.replaceMovement($movement, $file)"
+                               edit-enabled="true"
+                               on-edit="ctrl.editMovement($movement)">
+      </desmond-movements-table>
+    </vbox>
+
+  </hbox>
+
+</vbox>
