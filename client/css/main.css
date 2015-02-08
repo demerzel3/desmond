@@ -103,8 +103,10 @@ img.account {
 }
 table.table-movements {
   margin-bottom: 0;
+  position: relative;
 }
-table.table-movements tbody>tr>th {
+table.table-movements tbody > tr > th,
+table.table-movements thead > tr > th {
   white-space: nowrap;
   padding-top: 0;
   padding-bottom: 0;
@@ -117,7 +119,8 @@ table.table-movements tr.selected > td {
   background-color: #d8ebf6;
   border-color: #b4def6;
 }
-table.table-movements tbody>tr>td {
+table.table-movements tbody > tr > td,
+table.table-movements thead > tr > td {
   vertical-align: middle;
 }
 table.table-movements td.selection,
@@ -244,4 +247,20 @@ textarea[auto-grow] {
   list-style-type: none;
   padding: 20px 0 0 0;
   margin: 0;
+}
+#monthView .categories {
+  position: relative;
+  width: 80px;
+}
+#monthView .categories > div {
+  color: #fff;
+  border-bottom: solid 4px #fff;
+  min-height: 20px;
+}
+#monthView .categories > div:last-child {
+  border-bottom: none;
+}
+#monthView .funnel {
+  width: 120px;
+  overflow: hidden;
 }

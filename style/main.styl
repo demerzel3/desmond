@@ -135,8 +135,9 @@ img.account {
 
 table.table-movements {
   margin-bottom 0
+  position relative
 
-  tbody>tr>th {
+  tbody > tr > th, thead > tr > th {
     white-space nowrap
     padding-top 0
     padding-bottom 0
@@ -151,7 +152,7 @@ table.table-movements {
     border-color: #b4def6
   }
 
-  tbody>tr>td {
+  tbody > tr > td, thead > tr > td {
     vertical-align middle
   }
   td.selection, th.selection {
@@ -302,5 +303,25 @@ textarea[auto-grow] {
     list-style-type: none;
     padding: 20px 0 0 0;
     margin: 0;
+  }
+}
+
+#monthView {
+  .categories {
+    position: relative;
+    width: 80px;
+
+    & > div {
+      color white
+      border-bottom solid 4px white
+      min-height 20px
+    }
+    & > div:last-child {
+      border-bottom: none
+    }
+  }
+  .funnel {
+    width 120px
+    overflow hidden
   }
 }
