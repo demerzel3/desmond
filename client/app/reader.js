@@ -48,38 +48,54 @@
       return record;
     }
 
-    // try to match the continuation pattern
-    while (true) {
-      var contMatching = 0;
-      _.each(this.data, function(string, index) {
-        var pattern = continuationPattern[contMatching];
-        if (!pattern || string.match(pattern)) {
-          contMatching++;
-        } else {
-          return false;
+    if (_.isArray(continuationPattern)) {
+      // try to match the continuation pattern
+      while (true) {
+        var contMatching = 0;
+        _.each(this.data, function (string, index) {
+          var pattern = continuationPattern[contMatching];
+          if (!pattern || string.match(pattern)) {
+            contMatching++;
+          } else {
+            return false;
+          }
+          if (contMatching === continuationPattern.length) {
+            return false;
+          }
+        });
+        if (contMatching < continuationPattern.length) {
+          break;
         }
-        if (contMatching === continuationPattern.length) {
-          return false;
-        }
-      });
-      if (contMatching < continuationPattern.length) {
-        break;
+        // apply continuation
+        var continuation = this.data.splice(0, continuationPattern.length);
+        record = _.map(record, function (recordValue, index) {
+          var contValue = continuation[index];
+          if (!contValue) {
+            return recordValue;
+          }
+          contValue = contValue.trim();
+          if (contValue.length > 0) {
+            return recordValue + '\n' + contValue;
+          } else {
+            return recordValue;
+          }
+        });
+        //result.push(continuation);
       }
-      // apply continuation
-      var continuation = this.data.splice(0, continuationPattern.length);
-      record = _.map(record, function(recordValue, index) {
-        var contValue = continuation[index];
-        if (!contValue) {
-          return recordValue;
-        }
-        contValue = contValue.trim();
-        if (contValue.length > 0) {
-          return recordValue+'\n'+contValue;
-        } else {
-          return recordValue;
-        }
-      });
-      //result.push(continuation);
+    } else if (_.isObject(continuationPattern)
+      && _.isFunction(continuationPattern.consume)
+      && _.isFunction(continuationPattern.apply)) {
+      var accumulator = [];
+      console.log('works?', this.data[accumulator.length]);
+      while (continuationPattern.consume(this.data[accumulator.length])) {
+        console.log('accumulating ', this.data[accumulator.length]);
+        accumulator.push(this.data[accumulator.length]);
+      }
+      var newRecord = continuationPattern.apply(record, accumulator);
+      if (newRecord) {
+        record = newRecord;
+        this.data.splice(0, accumulator.length);
+      }
     }
     return record;
   };
@@ -458,6 +474,104 @@
     });
   };
 
+
+
+  /**
+   * Reads an Estratto Conto (PDF) of IWBank into a list of movements
+   *
+   * @constructor
+   */
+  var IntesaEstrattoContoReader = function(PDFReader, Movement, Document) {
+    this.PDFReader = PDFReader;
+    this.Movement = Movement;
+    this.Document = Document;
+  };
+  IntesaEstrattoContoReader.$inject = ['PDFReader', 'Movement', 'Document'];
+  IntesaEstrattoContoReader.DATE_PATTERN = [/^ESTRATTO CONTO N.  [0-9]{3}\/[0-9]{4}$/, /^AL  ([0-9]{2}\.[0-9]{2}\.[0-9]{4})$/];
+  IntesaEstrattoContoReader.TABLE_START_PATTERN = ["Data Operazione", "Data Valuta", "Descrizione", "      Addebiti", "     Accrediti"];
+  IntesaEstrattoContoReader.RECORD_PATTERN = [
+    /^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$/, // data operazione
+    /^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$/, // data valuta
+    /\S+/, // descrizione
+    /^[0-9\.,\s]+$/, // addebiti
+    /^[0-9\.,\s]+$/ // accrediti
+  ];
+
+  /**
+   * @param file
+   * @returns {Promise|*}
+   */
+  IntesaEstrattoContoReader.prototype.read = function(file) {
+    var self = IntesaEstrattoContoReader;
+    var Movement = this.Movement;
+    var Document = this.Document;
+
+    var consecutiveSpaces = 0;
+    var continuationConfig = {
+      // breaks accumulation when two consecutive spaces are found
+      consume: function(string) {
+        if (string.trim() === 0) {
+          consecutiveSpaces++;
+        } else {
+          consecutiveSpaces = 0;
+        }
+        return consecutiveSpaces < 2
+          && (string !== 'Totali')
+          && !string.match(/^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$/)
+          && !string.match(/^Pagina\s+[0-9]+\s+di\s+[0-9]+/);
+      },
+      // applies continuation
+      apply: function(record, accumulator) {
+        consecutiveSpaces = 0;
+        accumulator = _.filter(accumulator, function(descr) {
+          return descr.trim().length > 0;
+        });
+        record[2] = [record[2]].concat(accumulator).join('\n');
+        return record;
+      }
+    };
+
+    return this.PDFReader.toStringArray(file).then(function(strings) {
+      console.log(strings);
+      var consumer = new StringArrayConsumer(strings);
+      var dateRecord = consumer.readRecord(self.DATE_PATTERN);
+      if (!dateRecord) {
+        return;
+      }
+      var dateString = dateRecord[1].match(self.DATE_PATTERN[1])[1];
+      var documentDate = moment(dateString, 'DD.MM.YYYY');
+      console.log("document date:", documentDate.format());
+
+      if (!consumer.readRecord(self.TABLE_START_PATTERN)) {
+        console.log('table start pattern not found');
+        return;
+      }
+
+      var records = [];
+      var record = consumer.readRecord(self.RECORD_PATTERN, continuationConfig);
+      console.log(record);
+      while (record != null) {
+        records.push(record);
+        record = consumer.readRecord(self.RECORD_PATTERN, continuationConfig);
+      }
+
+      // convert records to movements
+      var movements = _.map(records, function(record) {
+        var movement = new Movement();
+        movement.bankId = record[5];
+        movement.date = moment(record[0], 'DD.MM.YYYY', 'it');
+        movement.executionDate = moment(record[1], 'DD.MM.YYYY', 'it');
+        movement.date.year(documentDate.year());
+        movement.description = record[2];
+        movement.direction = (record[3].length > 0) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
+        movement.amount = record[3].length > 0 ? -parseItalianFloat(record[3]) : parseItalianFloat(record[4]);
+        return movement;
+      });
+      return new Document(file, Document.TYPE_ESTRATTO_CONTO_INTESA, documentDate, 0, movements);
+    });
+  };
+
+
   var Reader = angular.module('Desmond.Reader', []);
   Reader.service('PDFReader', PDFReader);
   Reader.service('ExcelReader', ExcelReader);
@@ -466,5 +580,6 @@
   Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
   Reader.service('IWPowerListaMovimentiReader', IWPowerListaMovimentiReader);
   Reader.service('BNLListaMovimentiReader', BNLListaMovimentiReader);
+  Reader.service('IntesaEstrattoContoReader', IntesaEstrattoContoReader);
 
 })(window.jQuery, window.angular);

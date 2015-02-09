@@ -248,7 +248,11 @@ textarea[auto-grow] {
   padding: 20px 0 0 0;
   margin: 0;
 }
+#monthView #header h2 {
+  margin-bottom: 20px;
+}
 #monthView .categories {
+  border-left: solid 4px #fff;
   position: relative;
   width: 80px;
 }

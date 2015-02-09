@@ -52,6 +52,7 @@
   Document.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
   Document.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
   Document.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
+  Document.TYPE_ESTRATTO_CONTO_INTESA = 'EstrattoContoIntesa';
 
 
   var Movement = function() {

@@ -15,7 +15,7 @@
 </head>
 <body hbox drag-over-screen>
 
-  <hbox style="width: 100%; height: 100%" align="center" class="drop-screen">
+  <hbox style="width: 100%; height: 100%" align="center" class="drop-screen" ng-controller="DropController as ctrl">
     <div class="glue"></div>
     <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
         drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
@@ -78,6 +78,7 @@
   <script src="app/routing.js"></script>
   <script src="app/controller/meta_controller.js"></script>
   <script src="app/controller/month_controller.js"></script>
+  <script src="app/controller/drop_controller.js"></script>
   <script src="app/controller/home_controller.js"></script>
   <script src="app/controller/sidebar_controller.js"></script>
   <script src="app/controller/import_modal_controller.js"></script>

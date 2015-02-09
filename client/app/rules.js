@@ -45,7 +45,8 @@
 
     RulesContainer.rule('Supermercati e Alimentari', function(movement) {
       if (movement.description.indexOf('PAGOBANCOMAT') > -1
-        || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1) {
+        || movement.description.indexOf('ACQUISTO CARTA DI CREDITO') > -1
+        || (movement.description.indexOf('Pagamento') > -1 && movement.description.indexOf('POS') > -1)) {
         if (movement.description.indexOf('ESSELUN') > -1
           || movement.description.indexOf('AUCHAN') > -1
           || movement.description.indexOf('IPERCOO') > -1
@@ -53,6 +54,7 @@
           || movement.description.indexOf('TIGROS') > -1
           || movement.description.indexOf('BOFROST') > -1
           || movement.description.indexOf('CARREFOUR') > -1
+          || movement.description.indexOf('GIGANTE') > -1
           || movement.description.indexOf('LIDL') > -1) {
           movement.category = CategoriesRepository.find('supermercato');
           return true;
@@ -80,7 +82,8 @@
 
     RulesContainer.rule('Ristoranti', function(movement) {
       if (movement.description.indexOf('RISTORAN') > -1
-        || movement.description.indexOf('OSTERIA') > -1) {
+        || movement.description.indexOf('OSTERIA') > -1
+        || movement.description.indexOf('RESTAURANT') > -1) {
         movement.category = CategoriesRepository.find('tempo_libero');
         return true;
       }
@@ -88,7 +91,8 @@
 
     RulesContainer.rule('Cinema', function(movement) {
       if (movement.description.indexOf('SKYLINE') > -1
-        || movement.description.indexOf('UCI MILANO') > -1) {
+        || movement.description.indexOf('UCI MILANO') > -1
+        || movement.description.indexOf('EUROPLEX') > -1) {
         movement.category = CategoriesRepository.find('tempo_libero');
         return true;
       }
@@ -102,7 +106,9 @@
     });
 
     RulesContainer.rule('Abbigliamento', function(movement) {
-      if (movement.description.indexOf('GEOX') > -1) {
+      if (movement.description.indexOf('GEOX') > -1
+        || movement.description.indexOf('PIAZZA ITALIA') > -1
+        || movement.description.indexOf('SANTINO PUNTO MODA') > -1) {
         movement.category = CategoriesRepository.find('abbigliamento');
         return true;
       }
