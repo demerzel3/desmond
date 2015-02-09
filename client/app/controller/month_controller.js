@@ -83,18 +83,18 @@
 
   MonthController.prototype.registerCategoriesStyles = function(categories) {
     var sheet = (function() {
-    	var style = document.createElement("style");
-    	// WebKit hack :(
-    	style.appendChild(document.createTextNode(""));
-    	document.head.appendChild(style);
-    	return style.sheet;
+      var style = document.createElement("style");
+      // WebKit hack :(
+      style.appendChild(document.createTextNode(""));
+      document.head.appendChild(style);
+      return style.sheet;
     })();
     categories.forEach(function(category, index) {
       var hsl = tinycolor(category.color).toHsl();
       hsl.s = Math.max(hsl.s, hsl.s-0.4);
       hsl.l = 0.95;
       var color = tinycolor(hsl);
-      sheet.insertRule('table.table-movements tr[category="'+category._id+'"] {background-color: '+color.toString()+'}', index);
+      sheet.insertRule('#monthView table.table-movements tr[category="'+category._id+'"] {background-color: '+color.toString()+'}', index);
     });
     console.log(sheet);
   };

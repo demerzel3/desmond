@@ -22,13 +22,13 @@
     return function(now) {
       now = moment(now || new Date());
       return {
-        startDate: now.clone().subtract(months, 'months').startOf('month'),
+        startDate: now.clone().subtract(months-1, 'months').startOf('month'),
         endDate: now.clone().endOf('month')
       }
     };
   };
 
-  var timeSpans = {
+  var TIME_SPANS = {
     last6months: {
       name: 'last6months',
       label: 'Ultimi 6 mesi',
@@ -41,22 +41,33 @@
     }
   };
 
-
-
   var OutgoingByCategoryByMonthStatistic = function(MovementsRepository) {
     this.movements = MovementsRepository;
     this.categories = [];
     this.months = [];
-    this.timeSpan = null;
+    this.timeSpan = TIME_SPANS.last6months;
+  };
+  OutgoingByCategoryByMonthStatistic.prototype.getStartDate = function() {
+    if (this.movements.all.length > 0) {
+      return this.movements.all[this.movements.all.length - 1].date;
+    } else {
+      return new Date();
+    }
   };
   OutgoingByCategoryByMonthStatistic.prototype.refresh = function() {
     var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
       return !movement.destination || 'bank_account' !== movement.destination.type;
     });
 
-    // TODO: use timeSpan to infer months
-    var months = [/*"2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06",*/
-      "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01"];
+    var span = this.timeSpan.get(this.getStartDate());
+    var date = span.startDate;
+    var months = [];
+
+    // infer months from timeSpan
+    while (date.diff(span.endDate) < 0) {
+      months.push(date.format('YYYY-MM'));
+      date.add(1, 'month');
+    }
     var monthsIndexMap = _.invert(months);
     months = months.map(function(month) {
       return {
@@ -106,7 +117,7 @@
     this.categories = CategoriesRepository;
     this.movements = MovementsRepository;
 
-    this.timeSpans = timeSpans;
+    this.timeSpans = TIME_SPANS;
     this.outgoingByCategoryByMonth = new OutgoingByCategoryByMonthStatistic(MovementsRepository);
   };
   Statistics.$inject = ['AccountsRepository', 'CategoriesRepository', 'MovementsRepository'];
