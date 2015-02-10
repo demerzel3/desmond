@@ -128,26 +128,6 @@
       }
     });
 
-    RulesContainer.rule('Carta di credito', function(movement) {
-      if (movement.description.indexOf('ADDEBITO ACQUISTI EFFETTUATI CON CARTA DI CREDITO') > -1) {
-        // this movement is replaceable with more detailed ones, loadable from another file
-        movement.replaceable = {
-          info: 'Trascina qui l\'estratto conto della carta di credito per caricare i dettagli',
-          accept: 'application/pdf',
-          reader: 'IWBankEstrattoContoCartaReader',
-          checker: function(movement, document) {
-            if (!movement.executionDate.isSame(document.date, 'day')
-              || movement.amount != document.total) {
-              console.log(movement.executionDate.format(), document.date.format());
-              console.log(movement.amount, document.total);
-              throw new Error('Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che le date e gli importi corrispondano e riprova.');
-            }
-          }
-        };
-        return true;
-      }
-    });
-
 
     RulesContainer.rule('Trasferimenti', function(movement) {
       if (movement.account.bank === 'bnl') {

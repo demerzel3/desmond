@@ -181,17 +181,51 @@
   };
 
 
+  var IWBankCartaReplaceHandler = function() {
+    this.info = 'Trascina sulla pagina l\'estratto conto della carta di credito per caricare i dettagli';
+    this.accept = 'application/pdf';
+    this.readerName = 'IWBankEstrattoContoCartaReader';
+  };
+  IWBankCartaReplaceHandler.prototype.toString = function() {
+    return 'IWBankCartaReplaceHandler';
+  };
+  IWBankCartaReplaceHandler.prototype.check = function(movement, document) {
+    if (!movement.executionDate.isSame(document.date, 'day')
+      || movement.amount != document.total) {
+      console.log(movement.executionDate.format(), document.date.format());
+      console.log(movement.amount, document.total);
+      throw new Error('Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che le date e gli importi corrispondano e riprova.');
+    }
+  };
+
+
+  var AbstractIWBankReader = function(IWBankCartaReplaceHandler) {
+    if (!IWBankCartaReplaceHandler) {
+      throw new Error('LogicError: Invalid replace handler');
+    }
+    this.IWBankCartaReplaceHandler = IWBankCartaReplaceHandler;
+  };
+  AbstractIWBankReader.prototype.applyReplaceHandler = function(movement) {
+    if (movement.description.indexOf('ADDEBITO ACQUISTI EFFETTUATI CON CARTA DI CREDITO') > -1) {
+      // this movement is replaceable with more detailed ones, loadable from another file
+      movement.replaceHandler = this.IWBankCartaReplaceHandler;
+      return true;
+    }
+  };
+
   /**
    * Reads an Estratto Conto (PDF) of IWBank into a list of movements
    *
    * @constructor
    */
-  var IWBankEstrattoContoReader = function(PDFReader, Movement, Document) {
+  var IWBankEstrattoContoReader = function(IWBankCartaReplaceHandler, PDFReader, Movement, Document) {
+    AbstractIWBankReader.call(this, IWBankCartaReplaceHandler);
     this.PDFReader = PDFReader;
     this.Movement = Movement;
     this.Document = Document;
   };
-  IWBankEstrattoContoReader.$inject = ['PDFReader', 'Movement', 'Document'];
+  IWBankEstrattoContoReader.prototype = Object.create(AbstractIWBankReader.prototype);
+  IWBankEstrattoContoReader.$inject = ['IWBankCartaReplaceHandler', 'PDFReader', 'Movement', 'Document'];
   IWBankEstrattoContoReader.DATE_PATTERN = [/^ESTRATTO AL ([0-9]{2}\/[0-9]{2}\/[0-9]{4})$/];
   IWBankEstrattoContoReader.TABLE_START_PATTERN = ["DATA", "VALUTA", "DARE", "AVERE", "DESCRIZIONE", "N. OPERAZIONE"];
   IWBankEstrattoContoReader.RECORD_PATTERN = [
@@ -217,6 +251,7 @@
    */
   IWBankEstrattoContoReader.prototype.read = function(file) {
     var self = IWBankEstrattoContoReader;
+    var reader = this;
     var Movement = this.Movement;
     var Document = this.Document;
 
@@ -252,6 +287,7 @@
         movement.description = record[4];
         movement.direction = (record[2].length > 0) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
         movement.amount = record[2].length > 0 ? -parseItalianFloat(record[2]) : parseItalianFloat(record[3]);
+        reader.applyReplaceHandler(movement);
         return movement;
       });
       return new Document(file, Document.TYPE_ESTRATTO_CONTO_IWBANK, documentDate, 0, movements);
@@ -260,15 +296,18 @@
 
 
 
-  var IWBankListaMovimentiReader = function(ExcelReader, Movement, Document) {
+  var IWBankListaMovimentiReader = function(IWBankCartaReplaceHandler, ExcelReader, Movement, Document) {
+    AbstractIWBankReader.call(this, IWBankCartaReplaceHandler);
     this.ExcelReader = ExcelReader;
     this.Movement = Movement;
     this.Document = Document;
   };
-  IWBankListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
+  IWBankListaMovimentiReader.prototype = Object.create(AbstractIWBankReader.prototype);
+  IWBankListaMovimentiReader.$inject = ['IWBankCartaReplaceHandler', 'ExcelReader', 'Movement', 'Document'];
   IWBankListaMovimentiReader.prototype.read = function(file) {
     var Movement = this.Movement;
     var Document = this.Document;
+    var reader = this;
     return this.ExcelReader.getFirstSheet(file).then(function(rows) {
       var reading = false;
       var document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_IWBANK);
@@ -300,6 +339,7 @@
         movement.description = row[3];
         movement.direction = (row[4] === '-') ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
         movement.amount = (row[4] === '-' ? -1 : 1)*parseFloat(row[5]);
+        reader.applyReplaceHandler(movement);
         document.movements.push(movement);
       });
       return document;
@@ -577,9 +617,11 @@
   Reader.service('ExcelReader', ExcelReader);
   Reader.service('IWBankEstrattoContoReader', IWBankEstrattoContoReader);
   Reader.service('IWBankListaMovimentiReader', IWBankListaMovimentiReader);
-  Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
   Reader.service('IWPowerListaMovimentiReader', IWPowerListaMovimentiReader);
   Reader.service('BNLListaMovimentiReader', BNLListaMovimentiReader);
   Reader.service('IntesaEstrattoContoReader', IntesaEstrattoContoReader);
+
+  Reader.service('IWBankCartaReplaceHandler', IWBankCartaReplaceHandler);
+  Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
 
 })(window.jQuery, window.angular);

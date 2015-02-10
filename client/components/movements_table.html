@@ -18,7 +18,7 @@
   </thead>
   <tbody>
     <tr ng-repeat="movement in ctrl.movements" category="{{movement.category ? movement.category._id : 'null'}}"
-        ng-class="{replaceable: movement.replaceable && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
+        ng-class="{replaceable: movement.replaceHandler && ctrl.replaceMovementEnabled=='true', selected: ctrl.isSelected(movement)}">
       <td class="selection" ng-if="ctrl.selectionEnabled == 'true'">
         <a href ng-click="ctrl.toggleSelection(movement)">
           <i class="md md-2x"
@@ -35,11 +35,16 @@
         <a class="edit" ng-if="ctrl.editEnabled == 'true'" href ng-click="ctrl.onEdit({$movement: movement})">
           <i class="md md-lg md-edit"></i>
         </a>
+        <!--
         <div ng-if="movement.replaceable && ctrl.replaceMovementEnabled=='true'" ng-file-drop class="drop-box"
              ng-file-change="ctrl.onReplaceMovement({$movement: movement, $file: $files[0]})"
              drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
              multiple="false" allow-dir="false" accept="{{movement.replaceable.accept}}">
           {{movement.replaceable.info}}
+        </div>
+        -->
+        <div ng-if="movement.replaceHandler && ctrl.replaceMovementEnabled=='true'" class="replaceable-info">
+          <i class="md md-lg md-input"></i> {{movement.replaceHandler.info}}
         </div>
       </td>
       <td>{{movement.category.name}}</td>

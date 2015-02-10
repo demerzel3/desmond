@@ -1,7 +1,8 @@
 (function(Desmond) {
 
-  var DropController = function($q, $injector, $modal,
+  var DropController = function($scope, $q, $injector, $modal,
                                 AccountsRepository, DocumentsRepository, MovementsRepository, FileHasher, RulesContainer) {
+    this.$scope = $scope;
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
@@ -10,8 +11,18 @@
     this.movements = MovementsRepository;
     this.FileHasher = FileHasher;
     this.RulesContainer = RulesContainer;
+
+    this.replaceableMovements = _.filter(this.movements.all, function(movement) {
+      return !!movement.replaceHandler;
+    });
+    var ctrl = this;
+    $scope.$watch('ctrl.movements.all', function(movements) {
+      ctrl.replaceableMovements = _.filter(movements, function(movement) {
+        return !!movement.replaceHandler;
+      });
+    });
   };
-  DropController.$inject = ['$q', '$injector', '$modal',
+  DropController.$inject = ['$scope', '$q', '$injector', '$modal',
     'AccountsRepository', 'DocumentsRepository', 'MovementsRepository', 'FileHasher', 'RulesContainer'];
 
   DropController.prototype.importFiles = function(account, files) {
@@ -121,6 +132,29 @@
       });
     }).then(function() {
       return reader.read(file);
+    });
+  };
+
+  DropController.prototype.replaceMovement = function(movement, file) {
+    var ctrl = this;
+    this.readFile(file, movement.replaceHandler.readerName).then(function(document) {
+      if (_.isFunction(movement.replaceHandler.check)) {
+        try {
+          movement.replaceHandler.check(movement, document);
+        } catch (e) {
+          sweetAlert('Oops..', e.message);
+          return;
+        }
+      }
+
+      _.each(document.movements, function(mov) {
+        mov.account = movement.account;
+      });
+
+      ctrl.appendMovements(document).then(function() {
+        // on append successful remove the original movement from the list
+        ctrl.movements.remove(movement);
+      });
     });
   };
 

@@ -26,21 +26,33 @@ body {
   padding: 20px;
   margin: 0 10px;
   border-radius: 5px;
-  font-size: 2em;
-  font-weight: 200;
   color: #333;
   background-color: rgba(255,255,255,0.7);
   box-shadow: 0 0 0 transparent;
   transition-duration: 0.5s;
   transition-property: background-color box-shadow margin;
 }
-.drop-box img.account {
+.drop-box.drop-box-account {
+  font-weight: 200;
+  font-size: 2em;
+  text-align: center;
+}
+.drop-box.drop-box-account img.account {
   width: 128px;
   height: 128px;
   border-radius: 128px;
   background-color: #fff;
   border: solid 5px #fff;
   margin-bottom: 10px;
+}
+.drop-box.drop-box-movement {
+  text-align: left;
+  margin-top: 15px;
+  padding: 20px 30px;
+}
+.drop-box.drop-box-movement .amount {
+  width: 100px;
+  text-align: right;
 }
 .drop-box.dragover,
 .drop-box.dragover-err {
@@ -114,6 +126,9 @@ table.table-movements thead > tr > th {
 }
 table.table-movements tr.replaceable > td {
   background-color: #fff884;
+}
+table.table-movements tr.replaceable > td .replaceable-info {
+  margin-top: 10px;
 }
 table.table-movements tr.selected > td {
   background-color: #d8ebf6;

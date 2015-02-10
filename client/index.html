@@ -15,17 +15,30 @@
 </head>
 <body hbox drag-over-screen>
 
-  <hbox style="width: 100%; height: 100%" align="center" class="drop-screen" ng-controller="DropController as ctrl">
-    <div class="glue"></div>
-    <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box"
-        drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-        ng-file-change="ctrl.importFiles(account, $files)"
-        multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-        <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
-        {{account.name}}
-    </div>
-    <div class="glue"></div>
-  </hbox>
+  <vbox style="width: 100%; height: 100%" justify="center" align="center" class="drop-screen" ng-controller="DropController as ctrl">
+    <hbox>
+      <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box drop-box-account"
+          drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+          ng-file-change="ctrl.importFiles(account, $files)"
+          multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+          <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
+          {{account.name}}
+      </div>
+    </hbox>
+
+    <hbox class="drop-box drop-box-movement" ng-repeat="movement in ctrl.replaceableMovements" align="center" gap="15"
+          ng-file-drop drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+          multiple="false" allow-dir="false" accept="{{movement.replaceHandler.accept}}"
+          ng-file-change="ctrl.replaceMovement(movement, $files[0])">
+      <i class="md md-input md-lg"></i>
+      <div class="account">
+        <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
+      </div>
+      <div>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</div>
+      <div ng-bind-html="movement.description|nl2br"></div>
+      <div class="amount">{{movement.amount | number:2}} €</div>
+    </hbox>
+  </vbox>
 
   <vbox id="accounts" shrink="0" ng-controller="SidebarController as ctrl">
     <h2>Patrimonio</h2>

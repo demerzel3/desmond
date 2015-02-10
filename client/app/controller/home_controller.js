@@ -62,29 +62,6 @@
     'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
     'Statistics'];
 
-  HomeController.prototype.replaceMovement = function(movement, file) {
-    var ctrl = this;
-    this.readFile(file, movement.replaceable.reader).then(function(document) {
-      if (movement.replaceable.checker) {
-        try {
-          movement.replaceable.checker(movement, document);
-        } catch (e) {
-          sweetAlert('Oops..', e.message);
-          return;
-        }
-      }
-
-      _.each(document.movements, function(mov) {
-        mov.account = movement.account;
-      });
-
-      ctrl.appendMovements(document).then(function() {
-        // on append successful remove the original movement from the list
-        ctrl.movements.remove(movement);
-      });
-    });
-  };
-
   HomeController.prototype.updateFilters = function() {
     // extract sources (for filters)
     var sources = _.where(this.movements.all, {direction: 'in'});

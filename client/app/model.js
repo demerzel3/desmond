@@ -64,6 +64,7 @@
     this.amount = 0;
     this.deleted = false;
     this.originatedBy = null;
+    this.replaceHandler = null;
 
     // links
     this.document = null; // document from which the movement has been imported
@@ -291,8 +292,8 @@
 
   var Model = angular.module('Desmond.Model', ['restangular']);
 
-  Model.run(['$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
-    function($timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
+  Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
+    function($injector, $timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
 
       var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
 
@@ -302,6 +303,9 @@
           var movement = angular.copy(element);
           movement.date = movement.date.format();
           movement.executionDate = movement.executionDate.format();
+          if (movement.replaceHandler) {
+            movement.replaceHandler = movement.replaceHandler.toString();
+          }
           _.each(LINK_FIELDS, function (fieldName) {
             if (movement[fieldName]) {
               movement[fieldName] = movement[fieldName]._id;
@@ -355,6 +359,9 @@
           })).then(function(linkedMovements) {
              movement.originatedFrom = linkedMovements;
           });
+        }
+        if (_.isString(movement.replaceHandler)) {
+          movement.replaceHandler = $injector.get(movement.replaceHandler);
         }
         // TODO: add sourceMovement and destinationMovement
         return movement;
