@@ -2,7 +2,8 @@
 
   var Component = angular.module('Desmond.Component', []);
 
-  var DesmondMovementsTableController = function($scope) {
+  var DesmondMovementsTableController = function($scope, $element, $window, $timeout) {
+    this.$element = $element;
     this.selectedItems = [];
     this.selectedItemsMap = {};
 
@@ -29,9 +30,16 @@
       ctrl.selectedItems = ctrl.selectedItems.filter(function(movement) {
         return !_.isUndefined(newMovementsIds[movement._id]);
       });
+
+      $timeout(function() {
+        ctrl.adaptHeader();
+      });
     });
+    $($window).resize(_.debounce(function() {
+      ctrl.adaptHeader();
+    }, 250));
   };
-  DesmondMovementsTableController.$inject = ['$scope'];
+  DesmondMovementsTableController.$inject = ['$scope', '$element', '$window', '$timeout'];
 
   DesmondMovementsTableController.prototype.deselectItem = function(item) {
     this.selectedItemsMap[item._id] = false;
@@ -73,6 +81,23 @@
     return this.selectedItemsMap[item._id];
   };
 
+  DesmondMovementsTableController.prototype.adaptHeader = function() {
+    console.log('adapting header');
+    var heads = this.$element.find('thead > tr > th');
+    var cols = this.$element.find('tbody > tr:first-child > td');
+    if (cols.length == 0) {
+      console.log('no cols');
+      return;
+    }
+    if (heads.length !== cols.length) {
+      console.log('heads and cols have different lengths', heads.length, cols.length);
+      return;
+    }
+    _.each(heads, function(head, index) {
+      $(head).width(cols.eq(index).width());
+    });
+  };
+
   Component.directive('desmondMovementsTable', function() {
     return {
       restrict: 'E',
@@ -107,6 +132,8 @@
     }
   });
 
+
+
   Component.directive('colorFromImage', function() {
     var colorThief = new ColorThief();
 
@@ -129,6 +156,8 @@
     };
   });
 
+
+
   Component.directive('dragOverScreen', ['$timeout', function($timeout) {
     return {
       restrict: 'A',
@@ -141,7 +170,7 @@
         document.addEventListener('dragover', function(event) {
           // allow drop!
           event.preventDefault();
-       	}, false);
+        }, false);
 
         document.addEventListener('dragenter', function(event) {
           dragElement = event.target;
@@ -162,7 +191,7 @@
             }, 500);
             leaveCount++;
           }
-       	}, false);
+        }, false);
 
         document.addEventListener('drop', function(event) {
           element.removeClass('dragover');

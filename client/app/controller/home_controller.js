@@ -37,14 +37,14 @@
       }
       ctrl.updateFilters();
       ctrl.refreshCharts(true);
-      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction, ctrl);
+      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction, ctrl).reverse();
     });
 
     $scope.$watchCollection('ctrl.filters', function(newFilters, oldFilters) {
       if (newFilters === oldFilters) {
         return;
       }
-      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
+      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl).reverse();
     });
 
     // initialization
@@ -53,7 +53,7 @@
       $timeout(function() {
         ctrl.updateFilters();
         ctrl.refreshCharts(false);
-        ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl);
+        ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl).reverse();
       });
     }
   };
@@ -100,6 +100,14 @@
 
   HomeController.prototype.movementsFilterFunction = function(movement) {
     var filters = this.filters;
+
+    if (movement.direction === 'in' && movement.source && movement.source.type === 'bank_account') {
+      return false;
+    }
+    if (movement.direction === 'out' && movement.destination && movement.destination.type === 'bank_account') {
+      return false;
+    }
+
     if (filters.source) {
       if (movement.direction !== 'in') {
         return false;
@@ -469,6 +477,9 @@
             click: function(event) {
               var month = stat.months[event.point.index];
               var category = stat.categories[this.index];
+              if (!month.id) {
+                return;
+              }
               console.log('month:', month, 'category:', category);
               $state.go('month', {month: month.id, cat: category._id});
             }

@@ -1,4 +1,4 @@
-<table class="table table-bordered table-movements">
+<table class="table table-movements">
   <thead>
     <tr>
       <th class="selection" ng-if="ctrl.selectionEnabled == 'true'">
@@ -28,8 +28,8 @@
       <td class="account">
         <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
       </td>
-      <td>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
-      <td>{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
+      <td class="date">{{movement.date.toDate()|date:'dd/MM/yyyy'}}</td>
+      <td class="date">{{movement.executionDate.toDate()|date:'dd/MM/yyyy'}}</td>
       <td class="description" ng-class="{editable: ctrl.editEnabled == 'true'}">
         <div ng-bind-html="movement.description|nl2br"></div>
         <a class="edit" ng-if="ctrl.editEnabled == 'true'" href ng-click="ctrl.onEdit({$movement: movement})">

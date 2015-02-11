@@ -92,13 +92,17 @@ img.account {
 }
 .panel.panel-selection {
   position: absolute;
-  left: 0;
-  right: 200px;
-  border: 1px solid #ddd;
+  left: 200px;
+  right: 0;
+  margin-top: -1px;
+  border: none;
+  border-top: 1px solid #b4def6;
+  border-bottom: 2px solid #b4def6;
   border-radius: 0;
   box-shadow: none;
   line-height: 34px;
   z-index: 100;
+  background-color: #d8ebf6;
 }
 .panel.panel-selection .panel-body {
   padding-left: 0;
@@ -116,6 +120,18 @@ img.account {
 table.table-movements {
   margin-bottom: 0;
   position: relative;
+  margin-top: 55px;
+  border-left: none;
+  border-right: none;
+}
+table.table-movements thead > tr > th {
+  border-left: solid 1px #ddd;
+}
+table.table-movements thead > tr > th:first-child {
+  border-left: none;
+}
+table.table-movements thead > tr > th:last-child {
+  border-right: none;
 }
 table.table-movements tbody > tr > th,
 table.table-movements thead > tr > th {
@@ -165,6 +181,10 @@ table.table-movements td.selection a {
 table.table-movements td.account,
 table.table-movements th.account {
   text-align: center;
+  width: 60px;
+}
+table.table-movements td.date {
+  width: 100px;
 }
 table.table-movements td.amount,
 table.table-movements th.amount {
@@ -178,16 +198,18 @@ table.table-movements td.description.editable {
   position: relative;
 }
 table.table-movements td.description.editable > div {
-  margin-right: 29px;
+  margin-right: 40px;
 }
 table.table-movements td.description a.edit {
   display: block;
   position: absolute;
-  top: 0;
-  bottom: 0;
   right: 0;
   opacity: 0.3;
-  width: 39px;
+  width: 40px;
+  height: 40px;
+  top: 50%;
+  margin-top: -20px;
+  border-radius: 20px;
 }
 table.table-movements td.description a.edit i {
   position: absolute;
@@ -204,6 +226,22 @@ table.table-movements td.description a.edit:hover {
 }
 table.table-movements tr.selected > td.description.editable a.edit {
   opacity: 0.8;
+}
+table.table-movements thead {
+  background-color: #fff;
+  border-top: solid 1px #ddd;
+  position: fixed;
+  margin-top: -56px;
+  z-index: 1;
+}
+.panel.filters {
+  border-radius: 0;
+  border: none;
+  border-top: solid 1px #ddd;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  margin-bottom: 0;
 }
 .selectable-box i {
   display: none;

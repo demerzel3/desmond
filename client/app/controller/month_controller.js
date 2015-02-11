@@ -178,7 +178,7 @@
     };
 
     $('.main-box').on('scroll', updateFunnel);
-    $(window).resize(updateFunnel);
+    $(window).resize(_.debounce(updateFunnel, 250));
   };
 
   Desmond.controller('MonthController', MonthController);
