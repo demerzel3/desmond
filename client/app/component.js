@@ -30,14 +30,16 @@
       ctrl.selectedItems = ctrl.selectedItems.filter(function(movement) {
         return !_.isUndefined(newMovementsIds[movement._id]);
       });
-
-      $timeout(function() {
-        ctrl.adaptHeader();
-      });
     });
-    $($window).resize(_.debounce(function() {
+    // adapt headers
+    var adaptHeader = _.debounce(function() {
       ctrl.adaptHeader();
-    }, 250));
+    }, 100);
+    $element.resize(adaptHeader);
+    $scope.$on('$destroy', function() {
+      console.log('on destroy');
+      $element.removeResize(adaptHeader);
+    });
   };
   DesmondMovementsTableController.$inject = ['$scope', '$element', '$window', '$timeout'];
 
