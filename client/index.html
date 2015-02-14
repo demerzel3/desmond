@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <title ng-bind="ctrl.meta.title">Desmond</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800' rel='stylesheet' type='text/css'>
   <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="lib/material-design-iconic-font/css/material-design-iconic-font.min.css" rel="stylesheet"/>
-  <link href="lib/fontawesome/css/font-awesome.min.css" rel="stylesheet"/>
   <link href="lib/sweetalert2/dist/sweetalert2.css" rel="stylesheet"/>
   <link href="lib/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
@@ -15,87 +15,87 @@
 </head>
 <body hbox drag-over-screen>
 
-  <vbox style="width: 100%; height: 100%" justify="center" align="center" class="drop-screen" ng-controller="DropController as ctrl">
-    <hbox>
-      <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box drop-box-account"
-          drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-          ng-file-change="ctrl.importFiles(account, $files)"
-          multiple="true" allow-dir="false" accept="*.xls,application/pdf">
-          <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
-          {{account.name}}
-      </div>
-    </hbox>
-
-    <hbox class="drop-box drop-box-movement" ng-repeat="movement in ctrl.replaceableMovements" align="center" gap="15"
-          ng-file-drop drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
-          multiple="false" allow-dir="false" accept="{{movement.replaceHandler.accept}}"
-          ng-file-change="ctrl.replaceMovement(movement, $files[0])">
-      <i class="md md-input md-lg"></i>
-      <div class="account">
-        <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
-      </div>
-      <div>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</div>
-      <div ng-bind-html="movement.description|nl2br"></div>
-      <div class="amount">{{movement.amount | number:2}} €</div>
-    </hbox>
-  </vbox>
-
-  <vbox id="accounts" shrink="0" ng-controller="SidebarController as ctrl">
-    <h2>Patrimonio</h2>
-    <span class="total">{{ctrl.movements.all | total | number:2}} €</span>
-    <hbox class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color" gap="20">
-      <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"/>
-      <vbox gap="5" justify="center" grow="1">
-        <span>{{account.name}}</span>
-        <span>{{ctrl.movements.all | filter:{ account: { _id: account._id } }:true | total | number:2}} €</span>
-      </vbox>
-    </hbox>
-    <div class="account account-new">
-      <i class="md md-3x md-add"></i>
+<vbox style="width: 100%; height: 100%" justify="center" align="center" class="drop-screen" ng-controller="DropController as ctrl">
+  <hbox>
+    <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box drop-box-account"
+         drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+         ng-file-change="ctrl.importFiles(account, $files)"
+         multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+      <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
+      {{account.name}}
     </div>
-  </vbox>
+  </hbox>
 
-  <div ui-view grow="1" class="flexbox vbox"></div>
+  <hbox class="drop-box drop-box-movement" ng-repeat="movement in ctrl.replaceableMovements" align="center" gap="15"
+        ng-file-drop drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+        multiple="false" allow-dir="false" accept="{{movement.replaceHandler.accept}}"
+        ng-file-change="ctrl.replaceMovement(movement, $files[0])">
+    <i class="md md-input md-lg"></i>
+    <div class="account">
+      <img class="account" ng-src="{{movement.account.avatarUrl}}" width="32" height="32" alt="{{movement.account.description}}"/>
+    </div>
+    <div>{{movement.date.toDate()|date:'dd/MM/yyyy'}}</div>
+    <div ng-bind-html="movement.description|nl2br"></div>
+    <div class="amount">{{movement.amount | number:2}} €</div>
+  </hbox>
+</vbox>
 
-  <script src="lib/tinycolor/tinycolor.js"></script>
-  <script src="lib/raphael/raphael-min.js"></script>
-  <script src="lib/color-thief/dist/color-thief.min.js"></script>
-  <script src="lib/spark-md5/spark-md5.min.js"></script>
-  <script src="lib/chartjs/Chart.js"></script>
-  <script src="lib/moment/min/moment-with-locales.min.js"></script>
-  <script src="lib/sweetalert2/dist/sweetalert2.min.js"></script>
-  <script src="lib/jquery/dist/jquery.min.js"></script>
-  <script src="lib/javascript-detect-element-resize/jquery.resize.js"></script>
-  <script src="lib/highcharts/highcharts.js"></script>
-  <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
-  <script src="lib/lodash/dist/lodash.min.js"></script>
-  <script src="lib/pdfjs-bower/dist/pdf.js"></script>
-  <script src="lib/js-xls/dist/xls.full.min.js"></script>
-  <script src="lib/papaparse.js/papaparse.min.js"></script>
-  <script src="lib/angular/angular.min.js"></script>
-  <script src="lib/angular-sanitize/angular-sanitize.min.js"></script>
-  <script src="lib/angular-ui-utils/ui-utils.min.js"></script>
-  <script src="lib/angular-ui-router/release/angular-ui-router.min.js"></script>
-  <script src="lib/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
-  <script src="lib/angular-layout/dist/angular-layout.min.js"></script>
-  <script src="lib/ng-file-upload/angular-file-upload.min.js"></script>
-  <script src="lib/angular-nl2br/angular-nl2br.min.js"></script>
-  <script src="lib/restangular/dist/restangular.min.js"></script>
-  <script src="app/lib/autogrow.ng.js"></script>
-  <script src="app/component.js"></script>
-  <script src="app/model.js"></script>
-  <script src="app/service.js"></script>
-  <script src="app/service/statistics.js"></script>
-  <script src="app/rules.js"></script>
-  <script src="app/reader.js"></script>
-  <script src="app/app.js"></script>
-  <script src="app/routing.js"></script>
-  <script src="app/controller/meta_controller.js"></script>
-  <script src="app/controller/month_controller.js"></script>
-  <script src="app/controller/drop_controller.js"></script>
-  <script src="app/controller/home_controller.js"></script>
-  <script src="app/controller/sidebar_controller.js"></script>
-  <script src="app/controller/import_modal_controller.js"></script>
-  <script src="app/controller/edit_modal_controller.js"></script>
+<vbox id="accounts" shrink="0" ng-controller="SidebarController as ctrl">
+  <h2>Patrimonio</h2>
+  <span class="total">{{ctrl.movements.all | total | number:2}} €</span>
+  <hbox class="account" ng-repeat="account in ctrl.accounts.bankAccounts" color-from-image="background-color" gap="20">
+    <img ng-src="{{account.avatarUrl}}" width="64" height="64" alt="{{account.description}}"/>
+    <vbox gap="5" justify="center" grow="1">
+      <span>{{account.name}}</span>
+      <span>{{ctrl.movements.all | filter:{ account: { _id: account._id } }:true | total | number:2}} €</span>
+    </vbox>
+  </hbox>
+  <div class="account account-new">
+    <i class="md md-3x md-add"></i>
+  </div>
+</vbox>
+
+<div ui-view grow="1" class="flexbox vbox"></div>
+
+<script src="lib/tinycolor/tinycolor.js"></script>
+<script src="lib/raphael/raphael-min.js"></script>
+<script src="lib/color-thief/dist/color-thief.min.js"></script>
+<script src="lib/spark-md5/spark-md5.min.js"></script>
+<script src="lib/chartjs/Chart.js"></script>
+<script src="lib/moment/min/moment-with-locales.min.js"></script>
+<script src="lib/sweetalert2/dist/sweetalert2.min.js"></script>
+<script src="lib/jquery/dist/jquery.min.js"></script>
+<script src="lib/javascript-detect-element-resize/jquery.resize.js"></script>
+<script src="lib/highcharts/highcharts.js"></script>
+<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="lib/lodash/dist/lodash.min.js"></script>
+<script src="lib/pdfjs-bower/dist/pdf.js"></script>
+<script src="lib/js-xls/dist/xls.full.min.js"></script>
+<script src="lib/papaparse/papaparse.min.js"></script>
+<script src="lib/angular/angular.min.js"></script>
+<script src="lib/angular-sanitize/angular-sanitize.min.js"></script>
+<script src="lib/angular-ui-utils/ui-utils.min.js"></script>
+<script src="lib/angular-ui-router/release/angular-ui-router.min.js"></script>
+<script src="lib/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+<script src="lib/angular-layout/dist/angular-layout.min.js"></script>
+<script src="lib/ng-file-upload/angular-file-upload.min.js"></script>
+<script src="lib/angular-nl2br/angular-nl2br.min.js"></script>
+<script src="lib/restangular/dist/restangular.min.js"></script>
+<script src="app/lib/autogrow.ng.js"></script>
+<script src="app/component.js"></script>
+<script src="app/model.js"></script>
+<script src="app/service.js"></script>
+<script src="app/service/statistics.js"></script>
+<script src="app/rules.js"></script>
+<script src="app/reader.js"></script>
+<script src="app/app.js"></script>
+<script src="app/routing.js"></script>
+<script src="app/controller/meta_controller.js"></script>
+<script src="app/controller/month_controller.js"></script>
+<script src="app/controller/drop_controller.js"></script>
+<script src="app/controller/home_controller.js"></script>
+<script src="app/controller/sidebar_controller.js"></script>
+<script src="app/controller/import_modal_controller.js"></script>
+<script src="app/controller/edit_modal_controller.js"></script>
 </body>
 </html>
