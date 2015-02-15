@@ -1,6 +1,7 @@
 (function($, angular) {
 
-  var HomeController = function($scope, $q, $timeout, $injector, $modal, $state, Restangular, FileHasher, RulesContainer, Movement,
+  var HomeController = function($stateParams, $scope, $q, $timeout, $injector, $modal, $state, Restangular, FileHasher,
+                                RulesContainer, Movement,
                                 DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository,
                                 Statistics) {
     this.$q = $q;
@@ -58,7 +59,8 @@
     }
   };
   HomeController.$inject = [
-    '$scope', '$q', '$timeout', '$injector', '$modal', '$state', 'Restangular', 'FileHasher', 'RulesContainer', 'Movement',
+    '$stateParams', '$scope', '$q', '$timeout', '$injector', '$modal', '$state', 'Restangular', 'FileHasher',
+    'RulesContainer', 'Movement',
     'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
     'Statistics'];
 
@@ -480,8 +482,7 @@
               if (!month.id) {
                 return;
               }
-              console.log('month:', month, 'category:', category);
-              $state.go('month', {month: month.id, cat: category._id});
+              $state.go('^.month', {month: month.id, cat: category._id});
             }
           }
         },

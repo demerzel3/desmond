@@ -22,3 +22,4 @@ node_modules
 client/lib
 restheart-0.9.7
 .vagrant
+client/config*.json

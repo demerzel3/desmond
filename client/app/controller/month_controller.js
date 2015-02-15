@@ -96,7 +96,6 @@
       var color = tinycolor(hsl);
       sheet.insertRule('#monthView table.table-movements tr[category="'+category._id+'"] {background-color: '+color.toString()+'}', index);
     });
-    console.log(sheet);
   };
 
   MonthController.prototype.updateFunnel = function() {

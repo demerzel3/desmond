@@ -1,20 +1,11 @@
 (function($, angular) {
 
-  var Config = {
-    dev: {
-      DB_BASE_URL: 'http://192.168.1.200:8123/desmond_dev'
-    },
-    prod: {
-      DB_BASE_URL: 'http://192.168.1.200:8123/desmond'
-    }
-  };
-
   var Desmond = angular.module('Desmond', [
     'ngSanitize',
     'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
     'autoGrow',
     'ui.router', 'ui.utils', 'ui.bootstrap',
-    'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
+    'Desmond.Configuration', 'Desmond.Rules', 'Desmond.Reader', 'Desmond.Model', 'Desmond.Component'
   ]);
 
   Desmond.filter('total', function() {
@@ -33,15 +24,11 @@
     };
   }]);
 
-  Desmond.run(['Restangular', '$location', 'PageMetadata', function(Restangular, $location, PageMetadata) {
-    var environment = $location.search()['dev'] ? 'dev' : 'prod';
+  Desmond.run(['Restangular', 'RuntimeConfiguration', function(Restangular, RuntimeConfiguration) {
 
-    if (environment !== 'prod') {
-      // change page title
-      PageMetadata.title = '['+environment+'] '+PageMetadata.title;
-    }
-
-    Restangular.setBaseUrl(Config[environment].DB_BASE_URL);
+    RuntimeConfiguration.get().then(function(config) {
+      Restangular.setBaseUrl(config.database.url);
+    });
     Restangular.setRestangularFields({id: '_id'});
 
     Restangular.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {

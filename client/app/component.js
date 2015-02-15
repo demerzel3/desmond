@@ -86,15 +86,12 @@
   };
 
   DesmondMovementsTableController.prototype.adaptHeader = function() {
-    console.log('adapting header');
     var heads = this.$element.find('thead > tr > th');
     var cols = this.$element.find('tbody > tr:first-child > td');
     if (cols.length == 0) {
-      console.log('no cols');
       return;
     }
     if (heads.length !== cols.length) {
-      console.log('heads and cols have different lengths', heads.length, cols.length);
       return;
     }
     _.each(heads, function(head, index) {

@@ -80,19 +80,21 @@
   Movement.DIRECTION_OUT = 'out';
   Movement.ORIGINATED_BY_MERGE = 'merge';
 
-  var CategoriesRepository = function($timeout, Restangular) {
+  var CategoriesRepository = function($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
     this.all = [];
 
     var repo = this;
-    this.loaded = $timeout(function() {
-      return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(function() {
+      return $timeout(function() {
+        return repo.load();
+      });
     });
   };
-  CategoriesRepository.$inject = ['$timeout', 'Restangular'];
+  CategoriesRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
   CategoriesRepository.prototype.load = function() {
     var repo = this;
-    this.Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
+    return this.Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
       repo.all = categories;
     });
   };
@@ -112,7 +114,7 @@
 
 
 
-  var AccountsRepository = function($timeout, Restangular) {
+  var AccountsRepository = function($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
 
     this.bankAccounts = [];
@@ -125,11 +127,13 @@
     };
 
     var repo = this;
-    this.loaded = $timeout(function() {
-      return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(function() {
+      return $timeout(function() {
+        return repo.load();
+      });
     });
   };
-  AccountsRepository.$inject = ['$timeout', 'Restangular'];
+  AccountsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
   AccountsRepository.prototype.load = function(name) {
     var repo = this;
     return this.Restangular.all('accounts').getList().then(function(accounts) {
@@ -153,17 +157,19 @@
 
 
 
-  var DocumentsRepository = function($timeout, Restangular) {
+  var DocumentsRepository = function($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
     this.endpoint = Restangular.all('documents');
     this.all = [];
 
     var repo = this;
-    this.loaded = $timeout(function() {
-      return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(function() {
+      return $timeout(function() {
+        return repo.load();
+      });
     });
   };
-  DocumentsRepository.$inject = ['$timeout', 'Restangular'];
+  DocumentsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
   DocumentsRepository.prototype.load = function(name) {
     var repo = this;
     return this.endpoint.getList().then(function(documents) {
@@ -207,7 +213,7 @@
     this.all = [];
     this.movementsEndpoint = Restangular.all('movements');
 
-    // load movements only after accounts and categories
+    // load movements only after documents, accounts and categories
     var repo = this;
     this.loaded = $q.all([DocumentsRepository.loaded, CategoriesRepository.loaded, AccountsRepository.loaded]).then(function() {
       repo.movementsEndpoint.getList({pagesize: 1000, filter: {deleted: false}}).then(function(movements) {
@@ -290,7 +296,7 @@
 
 
 
-  var Model = angular.module('Desmond.Model', ['restangular']);
+  var Model = angular.module('Desmond.Model', ['restangular', 'Desmond.Configuration']);
 
   Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
     function($injector, $timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
