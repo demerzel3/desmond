@@ -2,7 +2,7 @@
 
   var Component = angular.module('Desmond.Component', []);
 
-  var DesmondMovementsTableController = function($scope, $element, $window, $timeout) {
+  var DesmondMovementsTableController = function($scope, $element, $attrs, $window, $timeout) {
     this.$element = $element;
     this.selectedItems = [];
     this.selectedItemsMap = {};
@@ -31,17 +31,19 @@
         return !_.isUndefined(newMovementsIds[movement._id]);
       });
     });
-    // adapt headers
-    var adaptHeader = _.debounce(function() {
-      ctrl.adaptHeader();
-    }, 100);
-    $element.resize(adaptHeader);
-    $scope.$on('$destroy', function() {
-      console.log('on destroy');
-      $element.removeResize(adaptHeader);
-    });
+
+    if (!_.isUndefined($attrs.fixedHeader)) {
+      // adapt headers
+      var adaptHeader = _.debounce(function () {
+        ctrl.adaptHeader();
+      }, 100);
+      $element.resize(adaptHeader);
+      $scope.$on('$destroy', function () {
+        $element.removeResize(adaptHeader);
+      });
+    }
   };
-  DesmondMovementsTableController.$inject = ['$scope', '$element', '$window', '$timeout'];
+  DesmondMovementsTableController.$inject = ['$scope', '$element', '$attrs', '$window', '$timeout'];
 
   DesmondMovementsTableController.prototype.deselectItem = function(item) {
     this.selectedItemsMap[item._id] = false;

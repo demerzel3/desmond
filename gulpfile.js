@@ -3,7 +3,7 @@ var stylus = require('gulp-stylus');
 var nib = require('nib');
 
 gulp.task('style:compile', function () {
-  gulp.src('./style/*.styl')
+  gulp.src('./style/main.styl')
     .pipe(stylus({
       use: nib(),
       compress: false
@@ -12,5 +12,5 @@ gulp.task('style:compile', function () {
 });
 
 gulp.task('watch', function() {
-  gulp.watch(['./style/*.styl'], ['style:compile']);
+  gulp.watch(['./style/main.styl'], ['style:compile']);
 });

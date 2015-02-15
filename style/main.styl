@@ -21,25 +21,6 @@ html, body {
   line-height normal
 }
 
-.modal-header {
-  a {
-    i.md-2x {
-      line-height 1.3em
-    }
-    color #ccc
-    &:hover {
-      color $text-color
-    }
-    &:active {
-      color #666
-    }
-  }
-}
-
-.modal-backdrop {
-  bottom: 0;
-}
-
 .drop-box {
   padding: 20px
   margin 0 10px
@@ -109,13 +90,6 @@ img.account {
   border-radius: 16px;
 }
 
-.fa.movement-in {
-  color: #55bd00
-}
-.fa.movement-out {
-  color: #bd0000
-}
-
 .panel .panel-body {
   padding: 10px 15px
 }
@@ -142,142 +116,6 @@ img.account {
       width 36px
       text-align center
     }
-  }
-
-  &.ui-scrollfix {
-    position fixed
-    top 0
-    border-top-color white
-  }
-}
-
-table.table-movements {
-  margin-bottom 0
-  position relative
-  margin-top 55px
-
-  border-left none
-  border-right none
-
-  thead > tr > th {
-    border-left solid 1px $border-color
-  }
-  thead > tr > th:first-child {
-    border-left none
-  }
-  thead > tr > th:last-child {
-    border-right none
-  }
-
-  tbody > tr > th, thead > tr > th {
-    white-space nowrap
-    padding-top 0
-    padding-bottom 0
-    line-height 54px
-  }
-
-  tr.replaceable > td {
-    background-color: #fff884;
-
-    .replaceable-info {
-      margin-top: 10px;
-    }
-  }
-  tr.selected > td {
-    background-color: $selection-color
-    border-color: $selection-border-color
-  }
-
-  tbody > tr > td, thead > tr > td {
-    vertical-align middle
-  }
-  td.selection, th.selection {
-    width 36px
-    padding 0
-    text-align center
-    position relative
-  }
-  td.selection i {
-    cursor: pointer;
-
-    position: absolute
-    left 0
-    right 0
-    top 50%
-    margin-top -20px
-  }
-  td.selection a {
-    display block
-
-    position absolute
-    left 0
-    top 0
-    right 0
-    bottom 0
-    color $text-color;
-  }
-  td.account, th.account {
-    text-align: center;
-    width 60px
-  }
-  td.date {
-    width 100px
-  }
-  td.amount, th.amount {
-    text-align right
-    white-space nowrap
-  }
-  td.direction {
-    white-space nowrap
-  }
-
-  td.description {
-    &.editable {
-      position relative
-
-      & > div {
-        margin-right 40px
-      }
-    }
-    a.edit {
-      display block
-      position absolute
-      right 0
-      opacity 0.3
-      width 40px
-      height 40px
-      top 50%
-      margin-top -20px
-      border-radius 20px
-
-      i {
-        position absolute
-        top 50%
-        left 50%
-        margin-left -11.5px
-        margin-top -5px
-        height 21px
-        width 21px
-      }
-
-      &:hover {
-        opacity 1
-        background-color $selection-color
-      }
-    }
-  }
-  tr.selected > td.description.editable {
-    a.edit {
-      opacity 0.8
-    }
-  }
-
-  thead {
-    background-color white
-    border-top solid 1px $border-color
-    position fixed
-    margin-top -56px
-    z-index 1
   }
 }
 
@@ -391,3 +229,5 @@ textarea[auto-grow] {
     overflow hidden
   }
 }
+
+@require 'component/*'
