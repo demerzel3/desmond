@@ -55,12 +55,8 @@
     }
   };
   OutgoingByCategoryByMonthStatistic.prototype.refresh = function() {
-    var movements = _.filter(_.where(this.movements.all, {direction: 'out'}), function(movement) {
-      return !movement.destination || 'bank_account' !== movement.destination.type;
-    });
-
     var span = this.timeSpan.get(this.getStartDate());
-    var date = span.startDate;
+    var date = span.startDate.clone();
     var months = [];
 
     // infer months from timeSpan
@@ -74,6 +70,12 @@
         id: month,
         label: moment(month, 'YYYY-MM').format('MMM-YY')
       }
+    });
+
+    var movements = _.filter(this.movements.all, function(movement) {
+      return movement.date.isBetween(span.startDate, span.endDate, 'day')
+        && movement.direction === 'out'
+        && (!movement.destination || 'bank_account' !== movement.destination.type);
     });
 
     var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
@@ -104,6 +106,8 @@
           category.data[index] += -movement.amount;
         }
       });
+
+      category.mean = category.total / (months.length - 1);
     });
 
     this.categories = categories.reverse();
