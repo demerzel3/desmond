@@ -1,5 +1,3 @@
-(function($, angular) {
-
   var EditModalController = function($timeout, $modalInstance, AccountsRepository, CategoriesRepository, movement) {
     this.accounts = _.sortBy([AccountsRepository.moneyAccount].concat(AccountsRepository.all), 'name');
     this.categories = [].concat(CategoriesRepository.all, [{
@@ -48,6 +46,4 @@
     this.$modalInstance.close(this.movement);
   };
 
-  angular.module('Desmond').controller('EditModalController', EditModalController);
-
-})(window.jQuery, window.angular);
+  export default EditModalController;

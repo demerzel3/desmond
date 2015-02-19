@@ -1,7 +1,6 @@
-(function(Desmond) {
-
-  var DropController = function($scope, $q, $injector, $modal,
-                                AccountsRepository, DocumentsRepository, MovementsRepository, FileHasher, RulesContainer) {
+class DropController {
+  constructor($scope, $q, $injector, $modal,
+              AccountsRepository, DocumentsRepository, MovementsRepository, FileHasher, RulesContainer) {
     this.$scope = $scope;
     this.$q = $q;
     this.$injector = $injector;
@@ -21,11 +20,9 @@
         return !!movement.replaceHandler;
       });
     });
-  };
-  DropController.$inject = ['$scope', '$q', '$injector', '$modal',
-    'AccountsRepository', 'DocumentsRepository', 'MovementsRepository', 'FileHasher', 'RulesContainer'];
+  }
 
-  DropController.prototype.importFiles = function(account, files) {
+  importFiles(account, files) {
     var ctrl = this;
     //console.log('Importing files for ', account.name);
     _.each(files, function(file) {
@@ -55,9 +52,9 @@
         }
       }
     });
-  };
+  }
 
-  DropController.prototype.importFile = function(account, file, readerName) {
+  importFile(account, file, readerName) {
     var ctrl = this;
     this.readFile(file, readerName).then(function(document) {
       _.each(document.movements, function(movement) {
@@ -66,9 +63,9 @@
 
       ctrl.appendMovements(document);
     });
-  };
+  }
 
-  DropController.prototype.appendMovements = function(document) {
+  appendMovements(document) {
     this.applyAllRules(document.movements);
 
     var modal = this.$modal.open({
@@ -93,16 +90,16 @@
         return ctrl.movements.add(movementsToImport);
       });
     });
-  };
+  }
 
-  DropController.prototype.applyAllRules = function(movements) {
+  applyAllRules(movements) {
     var RulesContainer = this.RulesContainer;
     _.each(movements, function(movement) {
       RulesContainer.applyAll(movement);
     });
-  };
+  }
 
-  DropController.prototype.readFile = function(file, readerName) {
+  readFile(file, readerName) {
     var $q = this.$q;
     var reader = this.$injector.get(readerName);
     var documents = this.documents;
@@ -133,9 +130,9 @@
     }).then(function() {
       return reader.read(file);
     });
-  };
+  }
 
-  DropController.prototype.replaceMovement = function(movement, file) {
+  replaceMovement(movement, file) {
     var ctrl = this;
     this.readFile(file, movement.replaceHandler.readerName).then(function(document) {
       if (_.isFunction(movement.replaceHandler.check)) {
@@ -156,8 +153,7 @@
         ctrl.movements.remove(movement);
       });
     });
-  };
+  }
+}
 
-  Desmond.controller('DropController', DropController);
-
-})(window.angular.module('Desmond'));
+export default DropController;

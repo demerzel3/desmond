@@ -1,5 +1,3 @@
-(function(Service) {
-
   var COLORS = [
     '#0D8ECF',
     '#48B040',
@@ -130,6 +128,4 @@
     this.outgoingByCategoryByMonth.refresh();
   };
 
-  Service.service('Statistics', Statistics);
-
-})(angular.module('Desmond.Service'));
+  export default Statistics;

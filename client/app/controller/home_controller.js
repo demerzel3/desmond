@@ -1,5 +1,3 @@
-(function($, angular) {
-
   var HomeController = function($stateParams, $scope, $q, $timeout, $injector, $modal, $state, Restangular, FileHasher,
                                 RulesContainer, Movement,
                                 DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository,
@@ -495,6 +493,4 @@
     $('svg > text:contains("Highcharts.com")').remove();
   };
 
-  angular.module('Desmond').controller('HomeController', HomeController);
-
-})(window.jQuery, window.angular);
+  export default HomeController;

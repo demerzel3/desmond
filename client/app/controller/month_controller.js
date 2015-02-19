@@ -1,5 +1,3 @@
-(function($, angular, Desmond) {
-
   var MonthController = function($stateParams, $scope, $timeout, MovementsRepository, Statistics) {
     this.$timeout = $timeout;
     this.month = $stateParams.month;
@@ -180,6 +178,4 @@
     $(window).resize(_.debounce(updateFunnel, 250));
   };
 
-  Desmond.controller('MonthController', MonthController);
-
-})(window.jQuery, window.angular, window.angular.module('Desmond'));
+  export default MonthController;

@@ -1,5 +1,3 @@
-(function($, angular) {
-
   var ImportModalController = function($timeout, $modalInstance, document) {
     _.each(document.movements, function(movement, index) {
       movement._id = index;
@@ -23,6 +21,4 @@
     this.$modalInstance.close(this.selectedItems);
   };
 
-  angular.module('Desmond').controller('ImportModalController', ImportModalController);
-
-})(window.jQuery, window.angular);
+  export default ImportModalController;
