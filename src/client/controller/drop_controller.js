@@ -147,5 +147,7 @@ class DropController {
     });
   }
 }
+DropController.$inject = ['$scope', '$q', '$injector', '$modal',
+    'AccountsRepository', 'DocumentsRepository', 'MovementsRepository', 'FileHasher', 'RulesContainer'];
 
 export default DropController;
