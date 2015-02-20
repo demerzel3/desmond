@@ -11,57 +11,53 @@ class DropController {
     this.FileHasher = FileHasher;
     this.RulesContainer = RulesContainer;
 
-    this.replaceableMovements = _.filter(this.movements.all, function(movement) {
+    this.replaceableMovements = _.filter(this.movements.all, (movement) => {
       return !!movement.replaceHandler;
     });
-    var ctrl = this;
-    $scope.$watch('ctrl.movements.all', function(movements) {
-      ctrl.replaceableMovements = _.filter(movements, function(movement) {
+    $scope.$watch('ctrl.movements.all', (movements) => {
+      this.replaceableMovements = _.filter(movements, (movement) => {
         return !!movement.replaceHandler;
       });
     });
   }
 
   importFiles(account, files) {
-    var ctrl = this;
-    //console.log('Importing files for ', account.name);
-    _.each(files, function(file) {
+    for (var file of files) {
       if ('iwbank' === account.bank) {
         if (file.type == 'application/pdf') {
-          ctrl.importFile(account, file, 'IWBankEstrattoContoReader');
+          this.importFile(account, file, 'IWBankEstrattoContoReader');
         } else {
-          ctrl.importFile(account, file, 'IWBankListaMovimentiReader');
+          this.importFile(account, file, 'IWBankListaMovimentiReader');
         }
       } else if ('bnl' === account.bank) {
         if (file.type == 'application/pdf') {
           // TODO: add pdf import for BNL
         } else {
-          ctrl.importFile(account, file, 'BNLListaMovimentiReader');
+          this.importFile(account, file, 'BNLListaMovimentiReader');
         }
       } else if ('iwpower' === account.bank) {
         if (file.type == 'application/pdf') {
           // IWPower does not provide PDF reports
         } else {
-          ctrl.importFile(account, file, 'IWPowerListaMovimentiReader');
+          this.importFile(account, file, 'IWPowerListaMovimentiReader');
         }
       } else if ('intesa' === account.bank) {
         if (file.type === 'application/pdf') {
-          ctrl.importFile(account, file, 'IntesaEstrattoContoReader');
+          this.importFile(account, file, 'IntesaEstrattoContoReader');
         } else {
           // TODO: add xls import for Intesa
         }
       }
-    });
+    }
   }
 
   importFile(account, file, readerName) {
-    var ctrl = this;
-    this.readFile(file, readerName).then(function(document) {
-      _.each(document.movements, function(movement) {
+    this.readFile(file, readerName).then((document) => {
+      for (var movement of document.movements) {
         movement.account = account;
-      });
+      }
 
-      ctrl.appendMovements(document);
+      this.appendMovements(document);
     });
   }
 
@@ -74,41 +70,38 @@ class DropController {
       size: 'lg',
       windowClass: ['import-modal'],
       resolve: {
-        document: function() {
-          return document;
-        }
+        document: () => document
       }
     });
 
-    var ctrl = this;
-    return modal.result.then(function(movementsToImport) {
+    return modal.result.then((movementsToImport) => {
       // save document and then movements in it
-      return ctrl.documents.add(document).then(function(savedDocument) {
-        movementsToImport.forEach(function(movement) {
+      return this.documents.add(document).then((savedDocument) => {
+        for (var movement of movementsToImport) {
           movement.document = savedDocument;
-        });
-        return ctrl.movements.add(movementsToImport);
+        }
+        return this.movements.add(movementsToImport);
       });
     });
   }
 
   applyAllRules(movements) {
     var RulesContainer = this.RulesContainer;
-    _.each(movements, function(movement) {
+    for (var movement of movements) {
       RulesContainer.applyAll(movement);
-    });
+    }
   }
 
   readFile(file, readerName) {
     var $q = this.$q;
     var reader = this.$injector.get(readerName);
     var documents = this.documents;
-    return this.FileHasher.hashFile(file).then(function(file) {
+    return this.FileHasher.hashFile(file).then((file) => {
       var existingDocument = documents.findByHash(file.hash);
       if (!existingDocument) {
         return file;
       }
-      return $q(function(resolve, reject) {
+      return $q((resolve, reject) => {
         swal({
           title: 'File già importato',
           html: 'Sembra che tu abbia già importato <strong>' + file.name + '</strong>, eseguire di nuovo l\'importazione potrebbe creare movimenti duplicati.\n'
@@ -119,7 +112,7 @@ class DropController {
           confirmButtonColor: '#DD6B55',
           confirmButtonText: 'Importa ugualmente',
           cancelButtonText: 'Annulla'
-        }, function (isConfirm) {
+        }, (isConfirm) => {
           if (isConfirm) {
             resolve(file);
           } else {
@@ -127,14 +120,13 @@ class DropController {
           }
         });
       });
-    }).then(function() {
+    }).then(() => {
       return reader.read(file);
     });
   }
 
   replaceMovement(movement, file) {
-    var ctrl = this;
-    this.readFile(file, movement.replaceHandler.readerName).then(function(document) {
+    this.readFile(file, movement.replaceHandler.readerName).then((document) => {
       if (_.isFunction(movement.replaceHandler.check)) {
         try {
           movement.replaceHandler.check(movement, document);
@@ -144,13 +136,13 @@ class DropController {
         }
       }
 
-      _.each(document.movements, function(mov) {
+      for (var mov of document.movements) {
         mov.account = movement.account;
-      });
+      }
 
-      ctrl.appendMovements(document).then(function() {
+      this.appendMovements(document).then(() => {
         // on append successful remove the original movement from the list
-        ctrl.movements.remove(movement);
+        this.movements.remove(movement);
       });
     });
   }
