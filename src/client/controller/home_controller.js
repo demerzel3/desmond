@@ -1,16 +1,31 @@
-  var HomeController = function($stateParams, $scope, $q, $timeout, $injector, $modal, $state, Restangular, FileHasher,
-                                RulesContainer, Movement,
-                                DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository,
-                                Statistics) {
+const CHART_COLORS = [
+  '#0D8ECF',
+  '#48B040',
+  '#B0DE09',
+  '#FCD202',
+  '#FF6600',
+  '#CD0D74',
+  '#9900FF',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD'
+];
+
+class HomeController {
+  constructor($stateParams, $scope, $q, $timeout, $injector, $modal, $state, Restangular, Movement,
+              CategoriesRepository, AccountsRepository, MovementsRepository,
+              Statistics) {
     this.$q = $q;
     this.$injector = $injector;
     this.$modal = $modal;
     this.$state = $state;
     this.Restangular = Restangular;
-    this.FileHasher = FileHasher;
     this.Movement = Movement;
-    this.RulesContainer = RulesContainer;
-    this.documents = DocumentsRepository;
     this.categories = CategoriesRepository;
     this.accounts = AccountsRepository;
     this.movements = MovementsRepository;
@@ -29,40 +44,34 @@
     };
     this.selectedItems = [];
 
-    var ctrl = this;
-    $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
+    $scope.$watch('ctrl.movements.all', (movements, oldValue) => {
       if (movements === oldValue) {
         return;
       }
-      ctrl.updateFilters();
-      ctrl.refreshCharts(true);
-      ctrl.filteredMovements = _.filter(movements, ctrl.movementsFilterFunction, ctrl).reverse();
+      this.updateFilters();
+      this.refreshCharts(true);
+      this.filteredMovements = _.filter(movements, this.movementsFilterFunction, this).reverse();
     });
 
-    $scope.$watchCollection('ctrl.filters', function(newFilters, oldFilters) {
+    $scope.$watchCollection('ctrl.filters', (newFilters, oldFilters) => {
       if (newFilters === oldFilters) {
         return;
       }
-      ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl).reverse();
+      this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
     });
 
     // initialization
     if (this.movements.all.length > 0) {
       // deferred to allow the rendering of the spaces
-      $timeout(function() {
-        ctrl.updateFilters();
-        ctrl.refreshCharts(false);
-        ctrl.filteredMovements = _.filter(ctrl.movements.all, ctrl.movementsFilterFunction, ctrl).reverse();
+      $timeout(() => {
+        this.updateFilters();
+        this.refreshCharts(false);
+        this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
       });
     }
-  };
-  HomeController.$inject = [
-    '$stateParams', '$scope', '$q', '$timeout', '$injector', '$modal', '$state', 'Restangular', 'FileHasher',
-    'RulesContainer', 'Movement',
-    'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
-    'Statistics'];
+  }
 
-  HomeController.prototype.updateFilters = function() {
+  updateFilters() {
     // extract sources (for filters)
     var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
@@ -88,17 +97,17 @@
       return !!categories;
     });
     this.usedCategories = _.sortBy(categories, 'name');
-  };
+  }
 
-  HomeController.prototype.toggleAllSelection = function() {
+  toggleAllSelection() {
     if (this.selectedItems.length < this.filteredMovements.length) {
       this.selectedItems = [].concat(this.filteredMovements);
     } else {
       this.selectedItems = [];
     }
-  };
+  }
 
-  HomeController.prototype.movementsFilterFunction = function(movement) {
+  movementsFilterFunction(movement) {
     var filters = this.filters;
 
     if (movement.direction === 'in' && movement.source && movement.source.type === 'bank_account') {
@@ -150,29 +159,28 @@
     }
 
     return true;
-  };
+  }
 
-  HomeController.prototype.deleteSelected = function(message) {
+  deleteSelected(message) {
     message = message || 'Eliminare i movimenti selezionati?';
-    var ctrl = this;
     swal({
       title: message,
       type: 'warning',
       allowOutsideClick: true,
       showCancelButton: true,
       confirmButtonColor: '#DD6B55',
-      confirmButtonText: 'Elimina '+this.selectedItems.length+' movimenti',
+      confirmButtonText: 'Elimina ' + this.selectedItems.length + ' movimenti',
       cancelButtonText: 'Annulla'
-    }, function(isConfirm) {
+    }, (isConfirm) => {
       if (isConfirm) {
-        ctrl.selectedItems.forEach(function(movement) {
-          ctrl.movements.remove(movement);
-        });
+        for (let movement of this.selectedItems) {
+          this.movements.remove(movement);
+        }
       }
     });
-  };
+  }
 
-  HomeController.prototype.mergeSelected = function() {
+  mergeSelected() {
     // can only be from the same account
     if (_.uniq(_.pluck(this.selectedItems, 'account')).length > 1) {
       sweetAlert('Oops..', 'Non puoi unire movimenti di conti diversi, seleziona solo movimenti dello stesso conto.');
@@ -238,9 +246,9 @@
     }
 
     this.editMovement(newMovement);
-  };
+  }
 
-  HomeController.prototype.editMovement = function(movement) {
+  editMovement(movement) {
     var Restangular = this.Restangular;
     var isNew = !movement._id;
     var modal = this.$modal.open({
@@ -250,102 +258,85 @@
       windowClass: ['edit-modal'],
       backdrop: 'static',
       resolve: {
-        movement: function() {
+        movement: () => {
           // copy the angular movement, mantaining the references to other objects
           // TODO: move this into the Movement model class?
-          var copy = null;
-          var LINK_FIELDS = [
+          let copy = null;
+          const LINK_FIELDS = [
             'document', 'account', 'category', 'source',
             'sourceMovement', 'destination', 'destinationMovement',
             'originatedFrom'];
 
           var savedFields = {};
-          _.each(LINK_FIELDS, function (fieldName) {
+          for (let fieldName of LINK_FIELDS) {
             savedFields[fieldName] = movement[fieldName];
             movement[fieldName] = null;
-          });
+          }
           if (isNew) {
             copy = angular.copy(movement);
           } else {
             copy = Restangular.copy(movement);
           }
-          _.each(LINK_FIELDS, function (fieldName) {
+          for (let fieldName of LINK_FIELDS) {
             copy[fieldName] = savedFields[fieldName];
             movement[fieldName] = savedFields[fieldName];
-          });
+          }
           return copy;
         }
       }
     });
 
-    var ctrl = this;
-    return modal.result.then(function(editedMovement) {
+    return modal.result.then((editedMovement) => {
       if (editedMovement.category && editedMovement.category._isNew) {
-        return ctrl.categories.add(editedMovement.category).then(function (newCategory) {
+        return this.categories.add(editedMovement.category).then(function(newCategory) {
           editedMovement.category = newCategory;
           return editedMovement;
         });
       } else {
         return editedMovement;
       }
-    }).then(function(editedMovement) {
+    }).then((editedMovement) => {
       if (isNew) {
         // argh...
-        return ctrl.movements.add(editedMovement).then(function() {
+        return this.movements.add(editedMovement).then(() => {
           if (editedMovement.originatedFrom) {
-            editedMovement.originatedFrom.forEach(function(originalMovement) {
-              ctrl.movements.remove(originalMovement);
-            });
+            for (let originalMovement of editedMovement.originatedFrom) {
+              this.movements.remove(originalMovement);
+            }
           }
         });
       } else {
-        return ctrl.movements.save(editedMovement);
+        return this.movements.save(editedMovement);
       }
     });
-  };
+  }
 
 
-
-  var CHART_COLORS = [
-    '#0D8ECF',
-    '#48B040',
-    '#B0DE09',
-    '#FCD202',
-    '#FF6600',
-    '#CD0D74',
-    '#9900FF',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD'
-  ];
-  HomeController.prototype.refreshCharts = function(refreshStats) {
+  refreshCharts(refreshStats) {
     if (refreshStats) {
       this.statistics.refresh();
     }
     this.buildIncomingBySourceChart();
     this.buildOutgoingByCategoryChart();
     this.buildOutgoingByCategoryByMonthChart();
-  };
+  }
+
   /**
    * Creates a chart inside the specified container, removing the one already in the container (if exists)
    *
    * @param containerId
    */
-  HomeController.prototype.createChart = function(containerId) {
-    var container = $('#'+containerId);
+  createChart(containerId) {
+    var container = $('#' + containerId);
     if (container.find('canvas').length > 0) {
       container.find('canvas').remove();
     }
     var canvas = $('<canvas id="bySourceChart" width="200" height="200"></canvas>');
     container.append(canvas);
     return new Chart(canvas.get(0).getContext('2d'));
-  };
-  HomeController.prototype.buildIncomingBySourceChart = function() {
+  }
+
+  buildIncomingBySourceChart() {
     var movements = _.where(this.movements.all, {direction: 'in'});
     var sources = _.uniq(_.map(movements, function(movement) {
       return movement.source;
@@ -371,17 +362,17 @@
       animation: false,
       tooltipTemplate: 'label + " " + (value | number:2) + " €"'
     });
-  };
+  }
 
-  HomeController.prototype.buildOutgoingByCategoryChart = function() {
+  buildOutgoingByCategoryChart() {
     var movements = _.where(this.movements.all, {direction: 'out'});
     var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
       return !category || category._id !== 'casa';
     });
 
-    var data = _.sortBy(_.map(categories, function (category) {
+    var data = _.sortBy(_.map(categories, function(category) {
       return {
-        value: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
+        value: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
           if (movement.destination && 'bank_account' === movement.destination.type) {
             return sum;
           } else {
@@ -391,7 +382,7 @@
         label: category ? category.name : 'Non assegnata'
       };
     }), 'value').reverse();
-    _.each(data, function (dataItem, index) {
+    _.each(data, function(dataItem, index) {
       dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
 
@@ -399,9 +390,9 @@
       animation: false,
       tooltipTemplate: 'label + " " + (value | number:2) + " €"'
     });
-  };
+  }
 
-  HomeController.prototype.buildOutgoingByCategoryByMonthChart = function() {
+  buildOutgoingByCategoryByMonthChart() {
     var $state = this.$state;
     var stat = this.statistics.outgoingByCategoryByMonth;
 
@@ -455,7 +446,7 @@
         shadow: false,
         borderColor: '#eeeeee',
         borderWidth: 3,
-        formatter: function () {
+        formatter: function() {
           if (this.y > 0) {
             return this.series.name + ': ' + this.y.toFixed(2) + ' €<br/>';
           } else {
@@ -491,6 +482,12 @@
       series: [].concat(stat.categories).reverse()
     });
     $('svg > text:contains("Highcharts.com")').remove();
-  };
+  }
+}
+HomeController.$inject = [
+  '$stateParams', '$scope', '$q', '$timeout', '$injector', '$modal', '$state', 'Restangular',
+  'Movement',
+  'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
+  'Statistics'];
 
-  export default HomeController;
+export default HomeController;
