@@ -25,7 +25,8 @@ restheart-0.9.7
 client/config*.json
 # bower components
 client/lib
-# compiled javascript
+# compiled assets
 client/js
+client/css
 # intermediate build directory
 build
