@@ -16,7 +16,7 @@ import MonthController from 'controller/month_controller.js';
 var Desmond = angular.module('Desmond', [
   'ngSanitize',
   'restangular', 'angular.layout', 'angularFileUpload', 'nl2br',
-  'autoGrow',
+  'monospaced.elastic',
   'ui.router', 'ui.utils', 'ui.bootstrap',
   'Desmond.Configuration', 'Desmond.Service', 'Desmond.Model', 'Desmond.Rules', 'Desmond.Reader', 'Desmond.Component'
 ]);
