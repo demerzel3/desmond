@@ -21,9 +21,9 @@ var Desmond = angular.module('Desmond', [
   'Desmond.Configuration', 'Desmond.Service', 'Desmond.Model', 'Desmond.Rules', 'Desmond.Reader', 'Desmond.Component'
 ]);
 
-Desmond.filter('total', function() {
-  return function(movements) {
-    return _.reduce(movements, function(total, movement) {
+Desmond.filter('total', () => {
+  return (movements) => {
+    return _.reduce(movements, (total, movement) => {
       return total + movement.amount;
     }, 0.0);
   }
@@ -37,14 +37,14 @@ Desmond.run(['$parse', function($parse) {
   };
 }]);
 
-Desmond.run(['Restangular', 'RuntimeConfiguration', function(Restangular, RuntimeConfiguration) {
+Desmond.run(['Restangular', 'RuntimeConfiguration', (Restangular, RuntimeConfiguration) => {
 
-  RuntimeConfiguration.get().then(function(config) {
+  RuntimeConfiguration.get().then((config) => {
     Restangular.setBaseUrl(config.database.url);
   });
   Restangular.setRestangularFields({id: '_id'});
 
-  Restangular.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
+  Restangular.addFullRequestInterceptor((element, operation, what, url, headers, params) => {
     if ('put' === operation) {
       // remove all underscored fields from the element
       element = angular.copy(element);
@@ -63,7 +63,7 @@ Desmond.run(['Restangular', 'RuntimeConfiguration', function(Restangular, Runtim
   /**
    * Handle restheart peculiar responses.
    */
-  Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
+  Restangular.addResponseInterceptor((data, operation, what, url, response, deferred) => {
     if (operation === "getList") {
       if (data['_embedded'] && data['_embedded']['rh:doc']) {
         return data['_embedded']['rh:doc'];
@@ -88,10 +88,6 @@ Desmond.run(['Restangular', 'RuntimeConfiguration', function(Restangular, Runtim
     }
   });
 }]);
-
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-});
 
 Desmond.controller('HomeController', HomeController);
 Desmond.controller('MetaController', MetaController);
