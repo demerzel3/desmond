@@ -1,22 +1,21 @@
-(function($, angular) {
-
-  /**
-   * Represents an imported document, that is probably a file.
-   * Three key pieces of information are coded as properties here:
-   *  - document type (e.g. the source of this document)
-   *  - date of the document
-   *  - total amount of the document
-   * Everything else can be freely stored in 'metadata'.
-   *
-   * @param file {File} contains name, type and hash
-   * @param documentType
-   * @param date
-   * @param total
-   * @param movements
-   * @param metadata could be anything
-   * @constructor
-   */
-  var Document = function(file, documentType, date, total, movements, metadata) {
+/**
+ * Represents an imported document, that is probably a file.
+ * Three key pieces of information are coded as properties here:
+ *  - document type (e.g. the source of this document)
+ *  - date of the document
+ *  - total amount of the document
+ * Everything else can be freely stored in 'metadata'.
+ *
+ * @param file {File} contains name, type and hash
+ * @param documentType
+ * @param date
+ * @param total
+ * @param movements
+ * @param metadata could be anything
+ * @constructor
+ */
+class Document {
+  constructor(file, documentType, date, total, movements, metadata) {
     this.hash = file.hash;
     this.filename = file.name;
     this.mimeType = file.type || this.guessMimeType(file.name);
@@ -26,13 +25,12 @@
     this.movements = movements || [];
     this.metadata = metadata || {};
 
-    var doc = this;
-    this.movements.forEach(function(movement) {
-      movement.document = doc;
-    });
-  };
+    for (let movement of this.movements) {
+      movement.document = this;
+    }
+  }
 
-  Document.prototype.guessMimeType = function(filename) {
+  guessMimeType(filename) {
     var chunks = filename.split('.');
     if (chunks.length < 2) {
       return null;
@@ -45,17 +43,18 @@
     } else {
       return null;
     }
-  };
+  }
+}
+Document.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
+Document.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
+Document.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
+Document.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
+Document.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
+Document.TYPE_ESTRATTO_CONTO_INTESA = 'EstrattoContoIntesa';
 
-  Document.TYPE_ESTRATTO_CONTO_IWBANK = 'EstrattoContoIWBank';
-  Document.TYPE_LISTA_MOVIMENTI_IWBANK = 'ListaMovimentiIWBank';
-  Document.TYPE_ESTRATTO_CONTO_CARTA_IW = 'EstrattoContoCartaIW';
-  Document.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
-  Document.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
-  Document.TYPE_ESTRATTO_CONTO_INTESA = 'EstrattoContoIntesa';
 
-
-  var Movement = function() {
+class Movement {
+  constructor() {
     this.date = moment();
     this.executionDate = moment();
     this.bankId = null;
@@ -75,46 +74,50 @@
     this.destination = null;
     this.destinationMovement = null; // link to the inverse movement in the destination account
     this.originatedFrom = null;
-  };
-  Movement.DIRECTION_IN = 'in';
-  Movement.DIRECTION_OUT = 'out';
-  Movement.ORIGINATED_BY_MERGE = 'merge';
+  }
+}
+Movement.DIRECTION_IN = 'in';
+Movement.DIRECTION_OUT = 'out';
+Movement.ORIGINATED_BY_MERGE = 'merge';
 
-  var CategoriesRepository = function($timeout, Restangular, RuntimeConfiguration) {
+
+class CategoriesRepository {
+  constructor($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
     this.all = [];
 
-    var repo = this;
-    this.loaded = RuntimeConfiguration.get().then(function() {
-      return $timeout(function() {
-        return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(() => {
+      return $timeout(() => {
+        return this.load();
       });
     });
-  };
-  CategoriesRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
-  CategoriesRepository.prototype.load = function() {
-    var repo = this;
-    return this.Restangular.all('categories').getList({sort_by: 'name'}).then(function(categories) {
-      repo.all = categories;
+  }
+
+  load() {
+    return this.Restangular.all('categories').getList({sort_by: 'name'}).then((categories) => {
+      this.all = categories;
     });
-  };
-  CategoriesRepository.prototype.find = function(id) {
+  }
+
+  find(id) {
     return _.find(this.all, {_id: id});
-  };
-  CategoriesRepository.prototype.add = function(category) {
-    var repo = this;
-    return this.Restangular.all('categories').post(category).then(function(result) {
-      return repo.Restangular.one('categories', result._id).get();
-    }).then(function(newCategory) {
-      repo.all = _.sortBy([newCategory].concat(repo.all), 'name');
+  }
+
+  add(category) {
+    return this.Restangular.all('categories').post(category).then((result) => {
+      return this.Restangular.one('categories', result._id).get();
+    }).then((newCategory) => {
+      this.all = _.sortBy([newCategory].concat(this.all), 'name');
       return newCategory;
     });
-  };
+  }
+}
+CategoriesRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
 
 
 
-
-  var AccountsRepository = function($timeout, Restangular, RuntimeConfiguration) {
+class AccountsRepository {
+  constructor($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
 
     this.bankAccounts = [];
@@ -126,133 +129,134 @@
       avatarUrl: 'images/money.jpg'
     };
 
-    var repo = this;
-    this.loaded = RuntimeConfiguration.get().then(function() {
-      return $timeout(function() {
-        return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(() => {
+      return $timeout(() => {
+        return this.load();
       });
     });
-  };
-  AccountsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
-  AccountsRepository.prototype.load = function(name) {
-    var repo = this;
-    return this.Restangular.all('accounts').getList().then(function(accounts) {
-      repo.all = accounts;
-      _.each(accounts, function(account) {
+  }
+
+  load() {
+    return this.Restangular.all('accounts').getList().then((accounts) => {
+      this.all = accounts;
+      this.bankAccounts = [];
+      this.people = [];
+      for (let account of accounts) {
         if ('bank_account' === account.type) {
-          repo.bankAccounts.push(account);
+          this.bankAccounts.push(account);
         } else if ('person' === account.type) {
-          repo.people.push(account);
+          this.people.push(account);
         }
-      });
+      }
     });
-  };
-  AccountsRepository.prototype.findByName = function(name) {
+  }
+
+  findByName(name) {
     return _.find(this.all, {name: name});
-  };
-  AccountsRepository.prototype.find = function(id) {
+  }
+
+  find(id) {
     return _.find(this.all, {'_id': id});
-  };
+  }
+}
+AccountsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
 
 
-
-
-  var DocumentsRepository = function($timeout, Restangular, RuntimeConfiguration) {
+class DocumentsRepository {
+  constructor($timeout, Restangular, RuntimeConfiguration) {
     this.Restangular = Restangular;
     this.endpoint = Restangular.all('documents');
     this.all = [];
 
-    var repo = this;
-    this.loaded = RuntimeConfiguration.get().then(function() {
-      return $timeout(function() {
-        return repo.load();
+    this.loaded = RuntimeConfiguration.get().then(() => {
+      return $timeout(() => {
+        return this.load();
       });
     });
-  };
-  DocumentsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
-  DocumentsRepository.prototype.load = function(name) {
-    var repo = this;
-    return this.endpoint.getList().then(function(documents) {
-      repo.all = documents;
+  }
+
+  load(name) {
+    return this.endpoint.getList().then((documents) => {
+      this.all = documents;
     });
-  };
-  DocumentsRepository.prototype.findByHash = function(hash) {
+  }
+
+  findByHash(hash) {
     return _.find(this.all, {hash: hash});
-  };
-  DocumentsRepository.prototype.find = function(id) {
+  }
+
+  find(id) {
     return _.find(this.all, {'_id': id});
-  };
-  DocumentsRepository.prototype.add = function(document) {
-    var repo = this;
-    var endpoint = this.endpoint;
-    return endpoint.post(document).then(function(result) {
-      return repo.Restangular.one('documents', result._id).get();
-    }).then(function(newDocument) {
-      repo.all = [].concat(repo.all, [newDocument]);
+  }
+
+  add(document) {
+    return this.endpoint.post(document).then((result) => {
+      return this.Restangular.one('documents', result._id).get();
+    }).then((newDocument) => {
+      this.all = [].concat(this.all, [newDocument]);
       return newDocument;
     });
-  };
+  }
+}
+DocumentsRepository.$inject = ['$timeout', 'Restangular', 'RuntimeConfiguration'];
 
 
 
-
-  /**
-   * Stores the list of all movements, sorted by date ASC.
-   * Retrieves the list on creation, can be updated via "add" and "remove".
-   *
-   * @param $q
-   * @param Restangular
-   * @param DocumentsRepository
-   * @param CategoriesRepository
-   * @param AccountsRepository
-   * @constructor
-   */
-  var MovementsRepository = function($q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
+/**
+ * Stores the list of all movements, sorted by date ASC.
+ * Retrieves the list on creation, can be updated via "add" and "remove".
+ *
+ * @param $q
+ * @param Restangular
+ * @param DocumentsRepository
+ * @param CategoriesRepository
+ * @param AccountsRepository
+ * @constructor
+ */
+class MovementsRepository {
+  constructor($q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository) {
     this.Restangular = Restangular;
     this.$q = $q;
     this.all = [];
     this.movementsEndpoint = Restangular.all('movements');
 
     // load movements only after documents, accounts and categories
-    var repo = this;
-    this.loaded = $q.all([DocumentsRepository.loaded, CategoriesRepository.loaded, AccountsRepository.loaded]).then(function() {
-      repo.movementsEndpoint.getList({pagesize: 1000, filter: {deleted: false}}).then(function(movements) {
-        repo.all = _.sortBy(movements, function(movement) {
+    this.loaded = $q.all([DocumentsRepository.loaded, CategoriesRepository.loaded, AccountsRepository.loaded]).then(() => {
+      this.movementsEndpoint.getList({pagesize: 1000, filter: {deleted: false}}).then((movements) => {
+        this.all = _.sortBy(movements, (movement) => {
           return movement.date.toISOString();
         });
       });
     });
-  };
-  MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];
+  }
 
-  MovementsRepository.prototype.find = function(id) {
+  find(id) {
     return _.find(this.all, {'_id': id});
-  };
+  }
 
   /**
    * Append to movements
    *
    * @param movements
    */
-  MovementsRepository.prototype.add = function(movements) {
+  add(movements) {
     if (!_.isArray(movements)) {
       movements = [movements];
     }
-    var repo = this;
     var movementsEndpoint = this.movementsEndpoint;
     var promises = _.map(movements, function(movement) {
       return movementsEndpoint.post(movement);
     });
-    return this.$q.all(promises).then(function(results) {
+    return this.$q.all(promises).then((results) => {
       return _.pluck(results, '_id');
-    }).then(function(newIds) {
+    }).then((newIds) => {
       return movementsEndpoint.getList({pagesize: 1000, filter: {_id: {$in: newIds}}});
-    }).then(function(newMovements) {
-      repo.all = _.sortBy([].concat(repo.all, newMovements), function(movement) {
+    }).then((newMovements) => {
+      this.all = _.sortBy([].concat(this.all, newMovements), (movement) => {
         return movement.date.toISOString();
       });
     });
-  };
+  }
 
   /**
    * Remove the specified movement from the list, and marks it as deleted in the database.
@@ -260,16 +264,14 @@
    * @param movement
    * @return {Promise}
    */
-  MovementsRepository.prototype.remove = function(movement) {
-    var repo = this;
-
+  remove(movement) {
     movement.deleted = true;
-    return movement.save().then(function() {
-      repo.all = _.filter(repo.all, function(mv) {
+    return movement.save().then(() => {
+      this.all = _.filter(this.all, (mv) => {
         return (mv !== movement);
       });
     });
-  };
+  }
 
   /**
    * Saves the specified movement remotely and on success reloads it from the server and places it in the list.
@@ -277,120 +279,118 @@
    * @param movement
    * @return {Promise}
    */
-  MovementsRepository.prototype.save = function(movement) {
-    var repo = this;
-    return movement.save().then(function(result) {
+  save(movement) {
+    return movement.save().then((result) => {
       if (!result || !result._id) {
-        return repo.Restangular.one('movements', movement._id).get();
+        return this.Restangular.one('movements', movement._id).get();
       } else {
         return result;
       }
-    }).then(function(newMovement) {
-      var index = _.indexOf(_.pluck(repo.all, '_id'), movement._id);
-      repo.all.splice(index, 1, newMovement);
-      repo.all = [].concat(repo.all);
+    }).then((newMovement) => {
+      var index = _.indexOf(_.pluck(this.all, '_id'), movement._id);
+      this.all.splice(index, 1, newMovement);
+      this.all = [].concat(this.all);
       return newMovement;
     });
-  };
+  }
+}
+MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];
 
 
 
+var Model = angular.module('Desmond.Model', ['restangular', 'Desmond.Configuration']);
 
-  var Model = angular.module('Desmond.Model', ['restangular', 'Desmond.Configuration']);
+Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
+  function($injector, $timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
 
-  Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository', 'MovementsRepository',
-    function($injector, $timeout, $q, Restangular, DocumentsRepository, CategoriesRepository, AccountsRepository, MovementsRepository) {
+    const LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
 
-      var LINK_FIELDS = ['document', 'account', 'category', 'source', 'sourceMovement', 'destination', 'destinationMovement'];
-
-      // serialize movement and document
-      Restangular.addRequestInterceptor(function(element, operation, what, url) {
-        if (what === 'movements' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
-          var movement = angular.copy(element);
-          movement.date = movement.date.format();
-          movement.executionDate = movement.executionDate.format();
-          if (movement.replaceHandler) {
-            movement.replaceHandler = movement.replaceHandler.toString();
-          }
-          _.each(LINK_FIELDS, function (fieldName) {
-            if (movement[fieldName]) {
-              movement[fieldName] = movement[fieldName]._id;
-            }
-          });
-          if (movement.originatedFrom) {
-            movement.originatedFrom = _.pluck(movement.originatedFrom, '_id');
-          }
-          return movement;
-        } else if (what === 'documents' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
-          var document = angular.copy(element);
-          document.date = document.date.format();
-          // the relation is tracked from the movements side
-          delete document.movements;
-          return document;
-        } else {
-          return element;
+    // serialize movement and document
+    Restangular.addRequestInterceptor((element, operation, what, url) => {
+      if (what === 'movements' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
+        var movement = angular.copy(element);
+        movement.date = movement.date.format();
+        movement.executionDate = movement.executionDate.format();
+        if (movement.replaceHandler) {
+          movement.replaceHandler = movement.replaceHandler.toString();
         }
-      });
-
-      // unserialize movement
-      Restangular.addElementTransformer('movements', false, function(movement) {
-        movement.date = moment(movement.date);
-        movement.executionDate = moment(movement.executionDate);
-        if (movement.document) {
-          movement.document = DocumentsRepository.find(movement.document);
-          if (movement.document) {
-            movement.document.movements.push(movement);
+        for (let fieldName of LINK_FIELDS) {
+          if (movement[fieldName]) {
+            movement[fieldName] = movement[fieldName]._id;
           }
         }
-        if (movement.account) {
-          movement.account = AccountsRepository.find(movement.account);
-        }
-        if (movement.category) {
-          movement.category = CategoriesRepository.find(movement.category);
-        }
-        if (movement.source) {
-          if (movement.source === 'money') {
-            movement.source = AccountsRepository.moneyAccount;
-          } else {
-            movement.source = AccountsRepository.find(movement.source);
-          }
-        }
-        if (movement.destination) {
-          movement.destination = AccountsRepository.find(movement.destination);
-        }
-        // originatedFrom is an array of reference to deleted movements, must be loaded independently
         if (movement.originatedFrom) {
-           $q.all(_.map(movement.originatedFrom, function(movementId) {
-            return Restangular.one('movements', movementId).get();
-          })).then(function(linkedMovements) {
-             movement.originatedFrom = linkedMovements;
-          });
+          movement.originatedFrom = _.pluck(movement.originatedFrom, '_id');
         }
-        if (_.isString(movement.replaceHandler)) {
-          movement.replaceHandler = $injector.get(movement.replaceHandler);
-        }
-        // TODO: add sourceMovement and destinationMovement
         return movement;
-      });
-
-      // unserialize document
-      Restangular.addElementTransformer('documents', false, function(document) {
-        document.date = moment(document.date);
-        // movements gets filled in documents when they are loaded, the ids stored in the database are just for reference
-        document.movements = [];
+      } else if (what === 'documents' && (operation === 'post' || operation === 'put' || operation === 'patch')) {
+        var document = angular.copy(element);
+        document.date = document.date.format();
+        // the relation is tracked from the movements side
+        delete document.movements;
         return document;
-      });
+      } else {
+        return element;
+      }
+    });
 
-    }]);
+    // unserialize movement
+    Restangular.addElementTransformer('movements', false, (movement) => {
+      movement.date = moment(movement.date);
+      movement.executionDate = moment(movement.executionDate);
+      if (movement.document) {
+        movement.document = DocumentsRepository.find(movement.document);
+        if (movement.document) {
+          movement.document.movements.push(movement);
+        }
+      }
+      if (movement.account) {
+        movement.account = AccountsRepository.find(movement.account);
+      }
+      if (movement.category) {
+        movement.category = CategoriesRepository.find(movement.category);
+      }
+      if (movement.source) {
+        if (movement.source === 'money') {
+          movement.source = AccountsRepository.moneyAccount;
+        } else {
+          movement.source = AccountsRepository.find(movement.source);
+        }
+      }
+      if (movement.destination) {
+        movement.destination = AccountsRepository.find(movement.destination);
+      }
+      // originatedFrom is an array of reference to deleted movements, must be loaded independently
+      if (movement.originatedFrom) {
+        $q.all(_.map(movement.originatedFrom, (movementId) => {
+          return Restangular.one('movements', movementId).get();
+        })).then((linkedMovements) => {
+          movement.originatedFrom = linkedMovements;
+        });
+      }
+      if (_.isString(movement.replaceHandler)) {
+        movement.replaceHandler = $injector.get(movement.replaceHandler);
+      }
+      // TODO: add sourceMovement and destinationMovement
+      return movement;
+    });
 
-  // models
-  Model.factory('Movement', function() { return Movement; });
-  Model.factory('Document', function() { return Document; });
+    // unserialize document
+    Restangular.addElementTransformer('documents', false, (document) => {
+      document.date = moment(document.date);
+      // movements gets filled in documents when they are loaded, the ids stored in the database are just for reference
+      document.movements = [];
+      return document;
+    });
 
-  // repositories
-  Model.service('CategoriesRepository', CategoriesRepository);
-  Model.service('AccountsRepository', AccountsRepository);
-  Model.service('DocumentsRepository', DocumentsRepository);
-  Model.service('MovementsRepository', MovementsRepository);
+  }]);
 
-})(window.jQuery, window.angular);
+// models
+Model.factory('Movement', () => Movement);
+Model.factory('Document', () => Document);
+
+// repositories
+Model.service('CategoriesRepository', CategoriesRepository);
+Model.service('AccountsRepository', AccountsRepository);
+Model.service('DocumentsRepository', DocumentsRepository);
+Model.service('MovementsRepository', MovementsRepository);
