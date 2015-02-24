@@ -1,60 +1,61 @@
-(function(Service) {
+const COLORS = [
+  '#0D8ECF',
+  '#48B040',
+  '#B0DE09',
+  '#FCD202',
+  '#FF6600',
+  '#CD0D74',
+  '#9900FF',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD',
+  '#DDDDDD'
+];
 
-  var COLORS = [
-    '#0D8ECF',
-    '#48B040',
-    '#B0DE09',
-    '#FCD202',
-    '#FF6600',
-    '#CD0D74',
-    '#9900FF',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD',
-    '#DDDDDD'
-  ];
-
-  var buildMonthsSpanGetter = function(months) {
-    return function(now) {
-      now = moment(now || new Date());
-      return {
-        startDate: now.clone().subtract(months-1, 'months').startOf('month'),
-        endDate: now.clone().endOf('month')
-      }
-    };
-  };
-
-  var TIME_SPANS = {
-    last6months: {
-      name: 'last6months',
-      label: 'Ultimi 6 mesi',
-      get: buildMonthsSpanGetter(6)
-    },
-    last8months: {
-      name: 'last8months',
-      label: 'Ultimi 8 mesi',
-      get: buildMonthsSpanGetter(8)
+const buildMonthsSpanGetter = function(months) {
+  return function(now) {
+    now = moment(now || new Date());
+    return {
+      startDate: now.clone().subtract(months-1, 'months').startOf('month'),
+      endDate: now.clone().endOf('month')
     }
   };
+};
 
-  var OutgoingByCategoryByMonthStatistic = function(MovementsRepository) {
+const TIME_SPANS = {
+  last6months: {
+    name: 'last6months',
+    label: 'Ultimi 6 mesi',
+    get: buildMonthsSpanGetter(6)
+  },
+  last8months: {
+    name: 'last8months',
+    label: 'Ultimi 8 mesi',
+    get: buildMonthsSpanGetter(8)
+  }
+};
+
+class OutgoingByCategoryByMonthStatistic {
+  constructor(MovementsRepository) {
     this.movements = MovementsRepository;
     this.categories = [];
     this.months = [];
     this.timeSpan = TIME_SPANS.last6months;
-  };
-  OutgoingByCategoryByMonthStatistic.prototype.getStartDate = function() {
+  }
+
+  getStartDate() {
     if (this.movements.all.length > 0) {
       return this.movements.all[this.movements.all.length - 1].date;
     } else {
       return new Date();
     }
-  };
-  OutgoingByCategoryByMonthStatistic.prototype.refresh = function() {
+  }
+
+  refresh() {
     var span = this.timeSpan.get(this.getStartDate());
     var date = span.startDate.clone();
     var months = [];
@@ -85,8 +86,8 @@
       return {
         _id: category ? category._id : null,
         name: category ? category.name : 'Non assegnata',
-        data: months.map(function() { return 0 }),
-        total: _.reduce(_.where(movements, {category: category}), function (sum, movement) {
+        data: months.map(() => 0),
+        total: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
           return sum - movement.amount;
         }, 0)
       }
@@ -112,24 +113,25 @@
 
     this.categories = categories.reverse();
     this.months = months;
-  };
+  }
+}
 
 
 
-  var Statistics = function(AccountsRepository, CategoriesRepository, MovementsRepository) {
+class Statistics {
+  constructor(AccountsRepository, CategoriesRepository, MovementsRepository) {
     this.accounts = AccountsRepository;
     this.categories = CategoriesRepository;
     this.movements = MovementsRepository;
 
     this.timeSpans = TIME_SPANS;
     this.outgoingByCategoryByMonth = new OutgoingByCategoryByMonthStatistic(MovementsRepository);
-  };
-  Statistics.$inject = ['AccountsRepository', 'CategoriesRepository', 'MovementsRepository'];
+  }
 
-  Statistics.prototype.refresh = function() {
+  refresh() {
     this.outgoingByCategoryByMonth.refresh();
-  };
+  }
+}
+Statistics.$inject = ['AccountsRepository', 'CategoriesRepository', 'MovementsRepository'];
 
-  Service.service('Statistics', Statistics);
-
-})(angular.module('Desmond.Service'));
+export default Statistics;

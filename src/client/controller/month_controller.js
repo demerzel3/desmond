@@ -1,6 +1,5 @@
-(function($, angular, Desmond) {
-
-  var MonthController = function($stateParams, $scope, $timeout, MovementsRepository, Statistics) {
+class MonthController {
+  constructor($stateParams, $scope, $timeout, MovementsRepository, Statistics) {
     this.$timeout = $timeout;
     this.month = $stateParams.month;
     this.stat = Statistics.outgoingByCategoryByMonth;
@@ -22,10 +21,9 @@
       ctrl.stat.refresh();
       ctrl.initData();
     });
-  };
-  MonthController.$inject = ['$stateParams', '$scope', '$timeout', 'MovementsRepository', 'Statistics'];
+  }
 
-  MonthController.prototype.initData = function() {
+  initData() {
     var ctrl = this;
 
     this.registerCategoriesStyles(this.stat.categories);
@@ -47,7 +45,7 @@
 
     var categoriesOrder = {};
     this.categories.forEach(function(category, index) {
-      categoriesOrder[category._id] = index+1;
+      categoriesOrder[category._id] = index + 1;
     });
 
     var movements = _.filter(this.movements.all, function(movement) {
@@ -79,9 +77,9 @@
     this.$timeout(function() {
       ctrl.updateFunnel();
     });
-  };
+  }
 
-  MonthController.prototype.registerCategoriesStyles = function(categories) {
+  registerCategoriesStyles(categories) {
     var sheet = (function() {
       var style = document.createElement("style");
       // WebKit hack :(
@@ -91,14 +89,14 @@
     })();
     categories.forEach(function(category, index) {
       var hsl = tinycolor(category.color).toHsl();
-      hsl.s = Math.max(hsl.s, hsl.s-0.4);
+      hsl.s = Math.max(hsl.s, hsl.s - 0.4);
       hsl.l = 0.95;
       var color = tinycolor(hsl);
-      sheet.insertRule('#monthView table.table-movements tr[category="'+category._id+'"] {background-color: '+color.toString()+'}', index);
+      sheet.insertRule('#monthView table.table-movements tr[category="' + category._id + '"] {background-color: ' + color.toString() + '}', index);
     });
-  };
+  }
 
-  MonthController.prototype.updateFunnel = function() {
+  updateFunnel() {
     var $el = $('#monthView');
     var categories = $el.find('.categories > div');
     var rows = $el.find('tbody > tr').toArray();
@@ -132,8 +130,8 @@
         from: $(catRows[0]).position().top + 1
       };
       var rowsHeight = _.reduce(catRows, function(totalHeight, row) {
-        return totalHeight + $(row).height();
-      }, 0) - 1;
+          return totalHeight + $(row).height();
+        }, 0) - 1;
       funnelItem.right.to = funnelItem.right.from + rowsHeight;
 
       return funnelItem;
@@ -144,8 +142,8 @@
 
     var paper = Raphael(funnelEl[0]);
     var paths = _.map(items, function(item) {
-      var pathString = 'M'+0+','+item.left.from+'L'+size.width+','+item.right.from
-        +'L'+size.width+','+item.right.to+'L'+0+','+item.left.to+'Z';
+      var pathString = 'M' + 0 + ',' + item.left.from + 'L' + size.width + ',' + item.right.from
+        + 'L' + size.width + ',' + item.right.to + 'L' + 0 + ',' + item.left.to + 'Z';
       var path = paper.path(pathString);
       path.attr({
         fill: item.color,
@@ -170,16 +168,16 @@
       }
       paths.forEach(function(path, index) {
         var item = items[index];
-        var pathString = 'M'+0+','+item.left.from+'L'+newSize.width+','+(item.right.from-scrollTop)
-          +'L'+newSize.width+','+(item.right.to-scrollTop)+'L'+0+','+item.left.to+'Z';
+        var pathString = 'M' + 0 + ',' + item.left.from + 'L' + newSize.width + ',' + (item.right.from - scrollTop)
+          + 'L' + newSize.width + ',' + (item.right.to - scrollTop) + 'L' + 0 + ',' + item.left.to + 'Z';
         path.attr('path', pathString);
       });
     };
 
     $('.main-box').on('scroll', updateFunnel);
     $(window).resize(_.debounce(updateFunnel, 250));
-  };
+  }
+}
+MonthController.$inject = ['$stateParams', '$scope', '$timeout', 'MovementsRepository', 'Statistics'];
 
-  Desmond.controller('MonthController', MonthController);
-
-})(window.jQuery, window.angular, window.angular.module('Desmond'));
+export default MonthController;

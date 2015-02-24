@@ -1,44 +1,44 @@
-(function($, angular) {
+class RuntimeConfiguration {
 
-  var RuntimeConfiguration = function($q, $http) {
+  constructor($q, $http) {
     this.$http = $http;
 
     this._loadingDeferred = $q.defer();
-  };
-  RuntimeConfiguration.$inject = ['$q', '$http'];
+  }
 
   /**
    * @returns {Promise<Object>}
    */
-  RuntimeConfiguration.prototype.get = function() {
+  get() {
     return this._loadingDeferred.promise;
-  };
+  }
 
   /**
    * Triggers loading of configuration from external JSON file based on the environment to be loaded.
    * Should be called only once per execution.
    * @param environment
    */
-  RuntimeConfiguration.prototype.load = function(environment) {
+  load(environment) {
     if (environment && environment.match(/[a-z]+/)) {
       environment = '.' + environment;
     } else {
       environment = '';
     }
-    var me = this;
     var err = new Error('Invalid configuration file, JSON expected. Check /config' + environment + '.json');
-    this.$http.get('/config' + environment + '.json').success(function(result) {
+    this.$http.get('/config' + environment + '.json').success((result) => {
       if (!_.isObject(result)) {
         throw err;
       }
-      me._loadingDeferred.resolve(result);
-    }).error(function(e) {
+      this._loadingDeferred.resolve(result);
+    }).error((e) => {
       err.details = e;
       throw err;
     });
-  };
+  }
 
-  var Configuration = angular.module('Desmond.Configuration', []);
-  Configuration.service('RuntimeConfiguration', RuntimeConfiguration);
+}
+RuntimeConfiguration.$inject = ['$q', '$http'];
 
-})(window.jQuery, window.angular);
+var Configuration = angular.module('Desmond.Configuration', []);
+Configuration.service('RuntimeConfiguration', RuntimeConfiguration);
+

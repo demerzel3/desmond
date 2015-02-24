@@ -19,7 +19,14 @@ build/Release
 node_modules
 # Users Environment Variables
 .lock-wscript
-client/lib
 restheart-0.9.7
 .vagrant
+# runtime configurations
 client/config*.json
+# bower components
+client/lib
+# compiled assets
+client/js
+client/css
+# intermediate build directory
+build

@@ -1,59 +1,69 @@
-(function($, angular) {
+import Statistics from 'service/statistics.js';
 
-  /**
-   * @param name
-   * @param callable
-   * @param [priority]
-   * @constructor
-   */
-  var Rule = function(name, callable, priority) {
+/**
+ * @param name
+ * @param callable
+ * @param [priority]
+ * @constructor
+ */
+class Rule {
+  constructor(name, callable, priority = 0) {
     this.name = name;
     this.callable = callable;
-    this.priority = priority || 0;
-  };
+    this.priority = priority;
+  }
+}
 
-  var RulesContainer = function() {
+
+
+class RulesContainer {
+  constructor() {
     this.rules = [];
-  };
-  RulesContainer.prototype.rule = function(name, callable, priority) {
+  }
+
+  rule(name, callable, priority) {
     var rule = new Rule(name, callable, priority);
     this.rules.push(rule);
     this.rules = _.sortBy(this.rules, 'priority');
-  };
+  }
+
   /**
    * Apply all the rules to a movement, stopping at the first that applies successfully.
    *
    * @param movement
    */
-  RulesContainer.prototype.applyAll = function(movement) {
-    _.each(this.rules, function(rule) {
+  applyAll(movement) {
+    for (let rule of this.rules) {
       if (rule.callable.apply(movement, [movement])) {
         movement._appliedRule = rule.name;
-        return false;
+        break;
       }
-    });
-  };
+    }
+  }
+}
 
 
 
-
-  var PageMetadata = function() {
+class PageMetadata {
+  constructor() {
     this.title = "Desmond";
-  };
+  }
+}
 
 
 
-  var FileHasher = function($q) {
+class FileHasher {
+  constructor($q) {
     this.$q = $q;
-  };
-  FileHasher.$inject = ['$q'];
+  }
+
   /**
    * Adds an hash filed to the file and returns it (promise).
    *
    * @param file
    * @returns {Promise<File>}
    */
-  FileHasher.prototype.hashFile = function(file) {
+  hashFile(file) {
     var readData = this.$q(function(resolve, reject) {
       var reader = new FileReader();
       reader.onload = function(e) {
@@ -66,11 +76,14 @@
       file.hash = SparkMD5.hashBinary(binaryData);
       return file;
     });
-  };
+  }
+}
+FileHasher.$inject = ['$q'];
 
-  var Service = angular.module('Desmond.Service', []);
-  Service.service('RulesContainer', RulesContainer);
-  Service.service('PageMetadata', PageMetadata);
-  Service.service('FileHasher', FileHasher);
 
-})(window.jQuery, window.angular);
+
+var Service = angular.module('Desmond.Service', []);
+Service.service('RulesContainer', RulesContainer);
+Service.service('PageMetadata', PageMetadata);
+Service.service('FileHasher', FileHasher);
+Service.service('Statistics', Statistics);

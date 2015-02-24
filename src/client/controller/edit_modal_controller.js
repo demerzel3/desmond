@@ -1,6 +1,5 @@
-(function($, angular) {
-
-  var EditModalController = function($timeout, $modalInstance, AccountsRepository, CategoriesRepository, movement) {
+class EditModalController {
+  constructor($timeout, $modalInstance, AccountsRepository, CategoriesRepository, movement) {
     this.accounts = _.sortBy([AccountsRepository.moneyAccount].concat(AccountsRepository.all), 'name');
     this.categories = [].concat(CategoriesRepository.all, [{
       name: '+ Nuova categoria',
@@ -21,10 +20,9 @@
     } else {
       this.title = 'Nuovo movimento';
     }
-  };
-  EditModalController.$inject = ['$timeout', '$modalInstance', 'AccountsRepository', 'CategoriesRepository', 'movement'];
+  }
 
-  EditModalController.prototype.getDocumentIconClass = function(document) {
+  getDocumentIconClass(document) {
     if ('application/pdf' === document.mimeType) {
       return 'fa-file-pdf-o';
     } else if ('application/vnd.ms-excel' === document.mimeType) {
@@ -32,13 +30,13 @@
     } else {
       return 'fa-file-o';
     }
-  };
+  }
 
-  EditModalController.prototype.cancel = function() {
+  cancel() {
     this.$modalInstance.dismiss();
-  };
+  }
 
-  EditModalController.prototype.ok = function() {
+  ok() {
     if (this.movement.category && this.movement.category._id == '_custom') {
       this.movement.category = {
         name: this.customCategoryName,
@@ -46,8 +44,8 @@
       };
     }
     this.$modalInstance.close(this.movement);
-  };
+  }
+}
+EditModalController.$inject = ['$timeout', '$modalInstance', 'AccountsRepository', 'CategoriesRepository', 'movement'];
 
-  angular.module('Desmond').controller('EditModalController', EditModalController);
-
-})(window.jQuery, window.angular);
+export default EditModalController;
