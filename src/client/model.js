@@ -293,6 +293,17 @@ class MovementsRepository {
       return newMovement;
     });
   }
+
+  /**
+   * Returns a list of movements with unassigned category
+   */
+  findOutgoingUnassignedCategory() {
+    return _.filter(this.all, (movement) => {
+      return movement.direction === 'out'
+        && (!movement.destination || 'bank_account' !== movement.destination.type)
+        && movement.category === null;
+    });
+  }
 }
 MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];
 

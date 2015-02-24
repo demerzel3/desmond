@@ -1,7 +1,13 @@
 <vbox grow="1">
-  <div id="header" shrink="0">
+  <hbox id="header" shrink="0">
     <h2>Spese per categoria<!-- <i class="md md-arrow-drop-down"></i> --></h2>
-  </div>
+    <glue></glue>
+    <h2 class="menu">
+      <a ui-sref="^.unassigned">
+        Categorie da assegnare <span class="badge">99</span>
+      </a>
+    </h2>
+  </hbox>
 
   <hbox shrink="0" style="height: 300px">
     <div id="outgoingByCategoryByMonthChartContainer" grow="1">

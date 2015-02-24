@@ -47,7 +47,7 @@
           <i class="md md-lg md-input"></i> {{movement.replaceHandler.info}}
         </div>
       </td>
-      <td>{{movement.category.name}}</td>
+      <td class="category">{{movement.category.name}}</td>
       <td class="amount">{{movement.amount | number:2}} €</td>
       <td class="direction">
         <div ng-if="movement.direction === 'in'">

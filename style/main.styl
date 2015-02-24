@@ -10,6 +10,8 @@ $text-color = #333
 $selection-color = #d8ebf6
 $selection-border-color = #b4def6
 $border-color = #ddd
+$background-color = #eee
+$notification-color = #db3900
 
 html, body {
   width 100%
@@ -193,6 +195,35 @@ textarea[msd-elastic] {
   h2 {
     text-transform uppercase
     font-size 1em
+  }
+
+  h2.menu {
+    margin 0
+
+    .badge {
+      font-weight normal
+      background-color $notification-color
+      margin-left 5px
+    }
+
+    a {
+      display block
+      color $text-color
+      background-color $background-color
+      margin-right -20px
+      padding-top 20px
+      padding-bottom 10px
+      padding-left 20px
+      padding-right 20px
+
+      &:hover, &:focus {
+        text-decoration none
+        background-color darken($background-color, 5%)
+      }
+      &:active {
+        background-color lighten($background-color, 2%)
+      }
+    }
   }
 }
 

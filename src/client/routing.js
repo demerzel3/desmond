@@ -30,6 +30,12 @@ Desmond.config(['$stateProvider', '$locationProvider', '$urlRouterProvider',
         controller: 'MonthController',
         controllerAs: 'ctrl'
       })
+      .state('env.unassigned', {
+        url: '/unassigned',
+        templateUrl: 'views/unassigned.html',
+        controller: 'UnassignedController',
+        controllerAs: 'ctrl'
+      })
     ;
   }
 ]);
