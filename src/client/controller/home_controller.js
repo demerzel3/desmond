@@ -188,9 +188,7 @@ class HomeController {
     }
 
     // build a new movement from the selected ones
-    var amount = _.reduce(this.selectedItems, function(total, movement) {
-      return total + movement.amount;
-    }, 0);
+    var amount = this.selectedItems.reduce((total, movement) => total + movement.amount, 0);
     if (amount.toFixed(2) === '0.00') {
       return this.deleteSelected('L\'unione degli elementi selezionati dà somma 0, vuoi eliminarli invece di unirli?');
     }
@@ -205,7 +203,7 @@ class HomeController {
     newMovement.originatedBy = Movement.ORIGINATED_BY_MERGE;
     newMovement.originatedFrom = [].concat(this.selectedItems);
     newMovement.description = _.pluck(this.selectedItems, 'description').join('\n\n');
-    newMovement.category = _.reduce(this.selectedItems, function(cat, movement) {
+    newMovement.category = this.selectedItems.reduce(function(cat, movement) {
       if (!movement.category) {
         return cat;
       }
@@ -218,7 +216,7 @@ class HomeController {
       }
     }, undefined);
     if (Movement.DIRECTION_IN === newMovement.direction) {
-      newMovement.source = _.reduce(this.selectedItems, function(result, movement) {
+      newMovement.source = this.selectedItems.reduce((result, movement) => {
         if (!movement.source) {
           return result;
         }
@@ -231,7 +229,7 @@ class HomeController {
         }
       }, undefined);
     } else {
-      newMovement.destination = _.reduce(this.selectedItems, function(result, movement) {
+      newMovement.destination = this.selectedItems.reduce((result, movement) => {
         if (!movement.destination) {
           return result;
         }
@@ -338,13 +336,11 @@ class HomeController {
 
   buildIncomingBySourceChart() {
     var movements = _.where(this.movements.all, {direction: 'in'});
-    var sources = _.uniq(_.map(movements, function(movement) {
-      return movement.source;
-    }));
+    var sources = _.uniq(movements.map((movement) => movement.source));
 
-    var data = _.sortBy(_.map(sources, function(source) {
+    var data = _.sortBy(sources.map((source) => {
       return {
-        value: _.reduce(_.where(movements, {source: source}), function(sum, movement) {
+        value: _.where(movements, {source: source}).reduce((sum, movement) => {
           if (movement.source && 'bank_account' === movement.source.type) {
             return sum;
           } else {
@@ -370,9 +366,9 @@ class HomeController {
       return !category || category._id !== 'casa';
     });
 
-    var data = _.sortBy(_.map(categories, function(category) {
+    var data = _.sortBy(categories.map((category) => {
       return {
-        value: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
+        value: _.where(movements, {category: category}).reduce((sum, movement) => {
           if (movement.destination && 'bank_account' === movement.destination.type) {
             return sum;
           } else {
@@ -409,9 +405,7 @@ class HomeController {
       },
       title: false,
       xAxis: {
-        categories: _.map(stat.months, function(month) {
-          return month.label
-        }),
+        categories: stat.months.map((month) => month.label),
         tickLength: null,
         lineWidth: 0
       },

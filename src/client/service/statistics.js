@@ -87,9 +87,7 @@ class OutgoingByCategoryByMonthStatistic {
         _id: category ? category._id : null,
         name: category ? category.name : 'Non assegnata',
         data: months.map(() => 0),
-        total: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
-          return sum - movement.amount;
-        }, 0)
+        total: _.where(movements, {category: category}).reduce((sum, movement) => sum - movement.amount, 0)
       }
     });
     categories = _.sortBy(categories, 'total');

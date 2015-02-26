@@ -24,9 +24,7 @@ var Desmond = angular.module('Desmond', [
 
 Desmond.filter('total', () => {
   return (movements) => {
-    return _.reduce(movements, (total, movement) => {
-      return total + movement.amount;
-    }, 0.0);
+    return movements.reduce((total, movement) => total + movement.amount, 0.0);
   }
 });
 

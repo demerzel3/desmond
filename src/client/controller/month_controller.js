@@ -35,11 +35,11 @@ class MonthController {
       return;
     }
 
-    this.categories = _.filter(_.map(this.stat.categories, function(category) {
+    this.categories = _.filter(this.stat.categories.map((category) => {
       var cat = angular.copy(category);
       cat.monthTotal = category.data[monthIndex];
       return cat;
-    }), function(category) {
+    }), (category) => {
       return category.monthTotal > 0;
     });
 
@@ -70,9 +70,7 @@ class MonthController {
     });
     this.filteredMovements = movements;
 
-    this.total = _.reduce(this.categories, function(sum, category) {
-      return sum + category.monthTotal;
-    }, 0);
+    this.total = this.categories.reduce((sum, category) => sum + category.monthTotal, 0);
 
     this.$timeout(function() {
       ctrl.updateFunnel();
@@ -102,7 +100,7 @@ class MonthController {
     var rows = $el.find('tbody > tr').toArray();
     var movements = [].concat(this.filteredMovements);
 
-    var items = _.map(this.categories, function(category, index) {
+    var items = this.categories.map((category, index) => {
       var catEl = categories.eq(index);
       var pos = catEl.position();
       var funnelItem = {
@@ -129,7 +127,7 @@ class MonthController {
       funnelItem.right = {
         from: $(catRows[0]).position().top + 1
       };
-      var rowsHeight = _.reduce(catRows, function(totalHeight, row) {
+      var rowsHeight = catRows.reduce((totalHeight, row) => {
           return totalHeight + $(row).height();
         }, 0) - 1;
       funnelItem.right.to = funnelItem.right.from + rowsHeight;
@@ -141,7 +139,7 @@ class MonthController {
     var size = {width: funnelEl.width(), height: funnelEl.height()};
 
     var paper = Raphael(funnelEl[0]);
-    var paths = _.map(items, function(item) {
+    var paths = items.map((item) => {
       var pathString = 'M' + 0 + ',' + item.left.from + 'L' + size.width + ',' + item.right.from
         + 'L' + size.width + ',' + item.right.to + 'L' + 0 + ',' + item.left.to + 'Z';
       var path = paper.path(pathString);

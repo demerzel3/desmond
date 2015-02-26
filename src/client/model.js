@@ -244,7 +244,7 @@ class MovementsRepository {
       movements = [movements];
     }
     var movementsEndpoint = this.movementsEndpoint;
-    var promises = _.map(movements, function(movement) {
+    var promises = movements.map((movement) => {
       return movementsEndpoint.post(movement);
     });
     return this.$q.all(promises).then((results) => {
@@ -373,7 +373,7 @@ Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 
       }
       // originatedFrom is an array of reference to deleted movements, must be loaded independently
       if (movement.originatedFrom) {
-        $q.all(_.map(movement.originatedFrom, (movementId) => {
+        $q.all(movement.originatedFrom.map((movementId) => {
           return Restangular.one('movements', movementId).get();
         })).then((linkedMovements) => {
           movement.originatedFrom = linkedMovements;

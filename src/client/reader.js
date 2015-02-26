@@ -40,7 +40,7 @@ class StringArrayConsumer {
     }
 
     this.data.splice(0, matchIndex);
-    var record = _.map(this.data.splice(0, recordPattern.length), (string) => {
+    var record = this.data.splice(0, recordPattern.length).map((string) => {
       return string.trim();
     });
     //var result = [record];
@@ -69,7 +69,7 @@ class StringArrayConsumer {
         }
         // apply continuation
         var continuation = this.data.splice(0, continuationPattern.length);
-        record = _.map(record, function (recordValue, index) {
+        record = record.map((recordValue, index) => {
           var contValue = continuation[index];
           if (!contValue) {
             return recordValue;
@@ -136,7 +136,7 @@ class PDFReader {
         }, (pageErr) => {
           console.error(pageErr);
         }).then((textContent) => {
-          return _.map(textContent.items, (item) => {
+          return textContent.items.map((item) => {
             return item.str;
           });
         }, (err) => {
@@ -147,9 +147,7 @@ class PDFReader {
       return $q.all(promises);
     }).then((pagesStrings) => {
       // strings are arrays of arrays of strings that must be merged into a single array
-      return _.reduce(pagesStrings, (list, pageStrings) => {
-        return list.concat(pageStrings);
-      }, []);
+      return pagesStrings.reduce((list, pageStrings) => list.concat(pageStrings), []);
     });
   }
 }
@@ -271,7 +269,7 @@ class IWBankEstrattoContoReader extends AbstractIWBankReader {
       }
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = record[5];
         movement.date = moment(record[0], 'DD/MM', 'it');
@@ -457,7 +455,7 @@ class IWBankEstrattoContoCartaReader {
       var documentTotal = -parseItalianFloat(dateTotal[2]);
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = null;
         movement.date = moment(record[0], 'DD/MM/YYYY', 'it');
@@ -610,7 +608,7 @@ class IntesaEstrattoContoReader {
       }
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = record[5];
         movement.date = moment(record[0], 'DD.MM.YYYY', 'it');
