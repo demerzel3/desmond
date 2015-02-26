@@ -267,9 +267,7 @@ class MovementsRepository {
   remove(movement) {
     movement.deleted = true;
     return movement.save().then(() => {
-      this.all = _.filter(this.all, (mv) => {
-        return (mv !== movement);
-      });
+      this.all = this.all.filter((mv) => (mv !== movement));
     });
   }
 
@@ -298,7 +296,7 @@ class MovementsRepository {
    * Returns a list of movements with unassigned category
    */
   findOutgoingUnassignedCategory() {
-    return _.filter(this.all, (movement) => {
+    return this.all.filter((movement) => {
       return movement.direction === 'out'
         && (!movement.destination || 'bank_account' !== movement.destination.type)
         && movement.category === null;

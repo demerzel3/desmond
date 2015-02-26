@@ -576,7 +576,7 @@ class IntesaEstrattoContoReader {
       // applies continuation
       apply: (record, accumulator) => {
         consecutiveSpaces = 0;
-        accumulator = _.filter(accumulator, (descr) => {
+        accumulator = accumulator.filter((descr) => {
           return descr.trim().length > 0;
         });
         record[2] = [record[2]].concat(accumulator).join('\n');

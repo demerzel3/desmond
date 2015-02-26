@@ -57,7 +57,7 @@ class HomeController {
       if (newFilters === oldFilters) {
         return;
       }
-      this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+      this.filteredMovements = this.movements.all.filter(this.movementsFilterFunction, this).reverse();
     });
 
     // initialization
@@ -76,26 +76,20 @@ class HomeController {
     var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
     sources = _.uniq(sources);
-    sources = _.filter(sources, function(source) {
-      return !!source;
-    });
+    sources = sources.filter((source) => !!source);
     this.sources = _.sortBy(sources, 'name');
 
     // extract destinations (for filters)
     var destinations = _.where(this.movements.all, {direction: 'out'});
     destinations = _.pluck(destinations, 'destination');
     destinations = _.uniq(destinations);
-    destinations = _.filter(destinations, function(destination) {
-      return !!destination;
-    });
+    destinations = destinations.filter((destination) => !!destination);
     this.destinations = _.sortBy(destinations, 'name');
 
     // extract categories
     var categories = _.pluck(this.movements.all, 'category');
     categories = _.uniq(categories);
-    categories = _.filter(categories, function(categories) {
-      return !!categories;
-    });
+    categories = categories.filter((category) => !!category);
     this.usedCategories = _.sortBy(categories, 'name');
   }
 
@@ -362,7 +356,7 @@ class HomeController {
 
   buildOutgoingByCategoryChart() {
     var movements = _.where(this.movements.all, {direction: 'out'});
-    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
+    var categories = _.uniq(_.pluck(movements, 'category')).filter((category) => {
       return !category || category._id !== 'casa';
     });
 

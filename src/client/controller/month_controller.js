@@ -35,11 +35,11 @@ class MonthController {
       return;
     }
 
-    this.categories = _.filter(this.stat.categories.map((category) => {
+    this.categories = this.stat.categories.map((category) => {
       var cat = angular.copy(category);
       cat.monthTotal = category.data[monthIndex];
       return cat;
-    }), (category) => {
+    }).filter((category) => {
       return category.monthTotal > 0;
     });
 
@@ -48,7 +48,7 @@ class MonthController {
       categoriesOrder[category._id] = index + 1;
     });
 
-    var movements = _.filter(this.movements.all, function(movement) {
+    var movements = this.movements.all.filter((movement) => {
       return movement.direction === 'out'
         && movement.date.format('YYYY-MM') === ctrl.month
         && (!movement.destination || 'bank_account' !== movement.destination.type);
