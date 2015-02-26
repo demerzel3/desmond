@@ -110,7 +110,10 @@ export default () => {
       onReplaceMovement: '&',
 
       editEnabled: '@',
-      onEdit: '&'
+      onEdit: '&',
+
+      inlineCategoryEditEnabled: '@',
+      categories: '=?'
     },
     controller: DesmondMovementsTableController,
     controllerAs: 'ctrl',
@@ -125,6 +128,9 @@ export default () => {
       }
       if (!attrs.selectionEnabled) {
         attrs.selectionEnabled = 'true';
+      }
+      if (!attrs.inlineCategoryEditEnabled) {
+        attrs.inlineCategoryEditEnabled = 'false';
       }
     }
   }
