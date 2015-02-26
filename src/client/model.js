@@ -298,6 +298,7 @@ class MovementsRepository {
   findOutgoingUnassignedCategory() {
     return this.all.filter((movement) => {
       return movement.direction === 'out'
+        && !movement.replaceHandler
         && (!movement.destination || 'bank_account' !== movement.destination.type)
         && movement.category === null;
     });

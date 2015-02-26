@@ -5,11 +5,11 @@
 
   <vbox grow="1" class="main-box">
     <desmond-movements-table movements="ctrl.filteredMovements"
-                             selected-items="ctrl.selectedItems"
-                             replace-movement-enabled="true"
-                             on-replace-movement="ctrl.replaceMovement($movement, $file)"
-                             edit-enabled="true"
-                             on-edit="ctrl.editMovement($movement)"
+                             selection-enabled="false"
+                             replace-movement-enabled="false"
+                             edit-enabled="false"
+                             inline-category-edit-enabled="true"
+                             categories="ctrl.categories.all"
                              fixed-header>
     </desmond-movements-table>
   </vbox>

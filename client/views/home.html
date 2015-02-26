@@ -2,9 +2,9 @@
   <hbox id="header" shrink="0">
     <h2>Spese per categoria<!-- <i class="md md-arrow-drop-down"></i> --></h2>
     <glue></glue>
-    <h2 class="menu">
+    <h2 class="menu" ng-if="ctrl.unassignedMovementsCount > 0">
       <a ui-sref="^.unassigned">
-        Categorie da assegnare <span class="badge">99</span>
+        Categorie da assegnare <span class="badge">{{ctrl.unassignedMovementsCount}}</span>
       </a>
     </h2>
   </hbox>

@@ -31,6 +31,7 @@ class HomeController {
     this.movements = MovementsRepository;
     this.statistics = Statistics;
     this.filteredMovements = null;
+    this.unassignedMovementsCount = 0;
     this.files = [];
     this.sources = [];
     this.destinations = [];
@@ -48,9 +49,7 @@ class HomeController {
       if (movements === oldValue) {
         return;
       }
-      this.updateFilters();
-      this.refreshCharts(true);
-      this.filteredMovements = _.filter(movements, this.movementsFilterFunction, this).reverse();
+      this.onMovementsChanged();
     });
 
     $scope.$watchCollection('ctrl.filters', (newFilters, oldFilters) => {
@@ -64,11 +63,16 @@ class HomeController {
     if (this.movements.all.length > 0) {
       // deferred to allow the rendering of the spaces
       $timeout(() => {
-        this.updateFilters();
-        this.refreshCharts(false);
-        this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+        this.onMovementsChanged();
       });
     }
+  }
+
+  onMovementsChanged() {
+    this.updateFilters();
+    this.refreshCharts(true);
+    this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+    this.unassignedMovementsCount = this.movements.findOutgoingUnassignedCategory().length;
   }
 
   updateFilters() {
