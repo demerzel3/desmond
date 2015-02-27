@@ -1,6 +1,6 @@
 class ImportModalController {
   constructor($timeout, $modalInstance, document) {
-    _.each(document.movements, function(movement, index) {
+    document.movements.forEach((movement, index) => {
       movement._id = index;
     });
 
@@ -12,7 +12,7 @@ class ImportModalController {
   }
 
   ok() {
-    _.each(this.selectedItems, function(movement) {
+    this.selectedItems.forEach((movement) => {
       delete movement._id;
     });
     this.$modalInstance.close(this.selectedItems);

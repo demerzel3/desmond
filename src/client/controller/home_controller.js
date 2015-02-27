@@ -344,7 +344,7 @@ class HomeController {
         label: source ? source.name : 'Sconosciuta'
       };
     }), 'value').reverse();
-    _.each(data, function(dataItem, index) {
+    data.forEach((dataItem, index) => {
       dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
 
@@ -372,7 +372,7 @@ class HomeController {
         label: category ? category.name : 'Non assegnata'
       };
     }), 'value').reverse();
-    _.each(data, function(dataItem, index) {
+    data.forEach((dataItem, index) => {
       dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
 

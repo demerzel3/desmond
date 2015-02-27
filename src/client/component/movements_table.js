@@ -89,7 +89,7 @@ class DesmondMovementsTableController {
     if (heads.length !== cols.length) {
       return;
     }
-    _.each(heads, function(head, index) {
+    heads.each((index, head) => {
       $(head).width(cols.eq(index).width());
     });
   }

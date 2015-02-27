@@ -23,7 +23,8 @@ class StringArrayConsumer {
     // match the record pattern
     var matching = 0;
     var matchIndex = -1;
-    _.each(this.data, (string, index) => {
+    for (let index = 0; index < this.data.length; index++) {
+      let string = this.data[index];
       if (string.match(recordPattern[matching])) {
         matching++;
       } else {
@@ -31,9 +32,9 @@ class StringArrayConsumer {
       }
       if (matching === recordPattern.length) {
         matchIndex = index - recordPattern.length + 1;
-        return false;
+        break;
       }
-    });
+    }
 
     if (matchIndex == -1) {
       return null;
@@ -53,17 +54,17 @@ class StringArrayConsumer {
       // try to match the continuation pattern
       while (true) {
         var contMatching = 0;
-        _.each(this.data, function (string, index) {
+        for (let string of this.data) {
           var pattern = continuationPattern[contMatching];
           if (!pattern || string.match(pattern)) {
             contMatching++;
           } else {
-            return false;
+            break;
           }
           if (contMatching === continuationPattern.length) {
-            return false;
+            break;
           }
-        });
+        }
         if (contMatching < continuationPattern.length) {
           break;
         }

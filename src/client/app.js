@@ -48,7 +48,7 @@ Desmond.run(['Restangular', 'RuntimeConfiguration', (Restangular, RuntimeConfigu
       // remove all underscored fields from the element
       element = angular.copy(element);
       headers['If-Match'] = element._etag;
-      _.forEach(element, function(value, key) {
+      Object.keys(element).forEach((key) => {
         if (key[0] === '_') {
           delete element[key];
         }
