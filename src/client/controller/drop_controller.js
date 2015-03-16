@@ -11,11 +11,11 @@ class DropController {
     this.FileHasher = FileHasher;
     this.RulesContainer = RulesContainer;
 
-    this.replaceableMovements = _.filter(this.movements.all, (movement) => {
+    this.replaceableMovements = this.movements.all.filter((movement) => {
       return !!movement.replaceHandler;
     });
     $scope.$watch('ctrl.movements.all', (movements) => {
-      this.replaceableMovements = _.filter(movements, (movement) => {
+      this.replaceableMovements = movements.filter((movement) => {
         return !!movement.replaceHandler;
       });
     });

@@ -1,0 +1,16 @@
+<vbox grow="1">
+  <hbox id="header" shrink="0">
+    <h2>Categorie da assegnare</h2>
+  </hbox>
+
+  <vbox grow="1" class="main-box">
+    <desmond-movements-table movements="ctrl.filteredMovements"
+                             selection-enabled="false"
+                             replace-movement-enabled="false"
+                             edit-enabled="false"
+                             inline-category-edit-enabled="true"
+                             categories="ctrl.categories.all"
+                             fixed-header>
+    </desmond-movements-table>
+  </vbox>
+</vbox>

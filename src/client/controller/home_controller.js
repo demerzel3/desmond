@@ -31,6 +31,7 @@ class HomeController {
     this.movements = MovementsRepository;
     this.statistics = Statistics;
     this.filteredMovements = null;
+    this.unassignedMovementsCount = 0;
     this.files = [];
     this.sources = [];
     this.destinations = [];
@@ -48,27 +49,30 @@ class HomeController {
       if (movements === oldValue) {
         return;
       }
-      this.updateFilters();
-      this.refreshCharts(true);
-      this.filteredMovements = _.filter(movements, this.movementsFilterFunction, this).reverse();
+      this.onMovementsChanged();
     });
 
     $scope.$watchCollection('ctrl.filters', (newFilters, oldFilters) => {
       if (newFilters === oldFilters) {
         return;
       }
-      this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+      this.filteredMovements = this.movements.all.filter(this.movementsFilterFunction, this).reverse();
     });
 
     // initialization
     if (this.movements.all.length > 0) {
       // deferred to allow the rendering of the spaces
       $timeout(() => {
-        this.updateFilters();
-        this.refreshCharts(false);
-        this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+        this.onMovementsChanged();
       });
     }
+  }
+
+  onMovementsChanged() {
+    this.updateFilters();
+    this.refreshCharts(true);
+    this.filteredMovements = _.filter(this.movements.all, this.movementsFilterFunction, this).reverse();
+    this.unassignedMovementsCount = this.movements.findOutgoingUnassignedCategory().length;
   }
 
   updateFilters() {
@@ -76,26 +80,20 @@ class HomeController {
     var sources = _.where(this.movements.all, {direction: 'in'});
     sources = _.pluck(sources, 'source');
     sources = _.uniq(sources);
-    sources = _.filter(sources, function(source) {
-      return !!source;
-    });
+    sources = sources.filter((source) => !!source);
     this.sources = _.sortBy(sources, 'name');
 
     // extract destinations (for filters)
     var destinations = _.where(this.movements.all, {direction: 'out'});
     destinations = _.pluck(destinations, 'destination');
     destinations = _.uniq(destinations);
-    destinations = _.filter(destinations, function(destination) {
-      return !!destination;
-    });
+    destinations = destinations.filter((destination) => !!destination);
     this.destinations = _.sortBy(destinations, 'name');
 
     // extract categories
     var categories = _.pluck(this.movements.all, 'category');
     categories = _.uniq(categories);
-    categories = _.filter(categories, function(categories) {
-      return !!categories;
-    });
+    categories = categories.filter((category) => !!category);
     this.usedCategories = _.sortBy(categories, 'name');
   }
 
@@ -188,9 +186,7 @@ class HomeController {
     }
 
     // build a new movement from the selected ones
-    var amount = _.reduce(this.selectedItems, function(total, movement) {
-      return total + movement.amount;
-    }, 0);
+    var amount = this.selectedItems.reduce((total, movement) => total + movement.amount, 0);
     if (amount.toFixed(2) === '0.00') {
       return this.deleteSelected('L\'unione degli elementi selezionati dà somma 0, vuoi eliminarli invece di unirli?');
     }
@@ -205,7 +201,7 @@ class HomeController {
     newMovement.originatedBy = Movement.ORIGINATED_BY_MERGE;
     newMovement.originatedFrom = [].concat(this.selectedItems);
     newMovement.description = _.pluck(this.selectedItems, 'description').join('\n\n');
-    newMovement.category = _.reduce(this.selectedItems, function(cat, movement) {
+    newMovement.category = this.selectedItems.reduce(function(cat, movement) {
       if (!movement.category) {
         return cat;
       }
@@ -218,7 +214,7 @@ class HomeController {
       }
     }, undefined);
     if (Movement.DIRECTION_IN === newMovement.direction) {
-      newMovement.source = _.reduce(this.selectedItems, function(result, movement) {
+      newMovement.source = this.selectedItems.reduce((result, movement) => {
         if (!movement.source) {
           return result;
         }
@@ -231,7 +227,7 @@ class HomeController {
         }
       }, undefined);
     } else {
-      newMovement.destination = _.reduce(this.selectedItems, function(result, movement) {
+      newMovement.destination = this.selectedItems.reduce((result, movement) => {
         if (!movement.destination) {
           return result;
         }
@@ -338,13 +334,11 @@ class HomeController {
 
   buildIncomingBySourceChart() {
     var movements = _.where(this.movements.all, {direction: 'in'});
-    var sources = _.uniq(_.map(movements, function(movement) {
-      return movement.source;
-    }));
+    var sources = _.uniq(movements.map((movement) => movement.source));
 
-    var data = _.sortBy(_.map(sources, function(source) {
+    var data = _.sortBy(sources.map((source) => {
       return {
-        value: _.reduce(_.where(movements, {source: source}), function(sum, movement) {
+        value: _.where(movements, {source: source}).reduce((sum, movement) => {
           if (movement.source && 'bank_account' === movement.source.type) {
             return sum;
           } else {
@@ -354,7 +348,7 @@ class HomeController {
         label: source ? source.name : 'Sconosciuta'
       };
     }), 'value').reverse();
-    _.each(data, function(dataItem, index) {
+    data.forEach((dataItem, index) => {
       dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
 
@@ -366,13 +360,13 @@ class HomeController {
 
   buildOutgoingByCategoryChart() {
     var movements = _.where(this.movements.all, {direction: 'out'});
-    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
+    var categories = _.uniq(_.pluck(movements, 'category')).filter((category) => {
       return !category || category._id !== 'casa';
     });
 
-    var data = _.sortBy(_.map(categories, function(category) {
+    var data = _.sortBy(categories.map((category) => {
       return {
-        value: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
+        value: _.where(movements, {category: category}).reduce((sum, movement) => {
           if (movement.destination && 'bank_account' === movement.destination.type) {
             return sum;
           } else {
@@ -382,7 +376,7 @@ class HomeController {
         label: category ? category.name : 'Non assegnata'
       };
     }), 'value').reverse();
-    _.each(data, function(dataItem, index) {
+    data.forEach((dataItem, index) => {
       dataItem.color = CHART_COLORS[index % CHART_COLORS.length]
     });
 
@@ -409,9 +403,7 @@ class HomeController {
       },
       title: false,
       xAxis: {
-        categories: _.map(stat.months, function(month) {
-          return month.label
-        }),
+        categories: stat.months.map((month) => month.label),
         tickLength: null,
         lineWidth: 0
       },

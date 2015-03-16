@@ -73,13 +73,13 @@ class OutgoingByCategoryByMonthStatistic {
       }
     });
 
-    var movements = _.filter(this.movements.all, function(movement) {
+    var movements = this.movements.all.filter((movement) => {
       return movement.date.isBetween(span.startDate, span.endDate, 'day')
         && movement.direction === 'out'
         && (!movement.destination || 'bank_account' !== movement.destination.type);
     });
 
-    var categories = _.filter(_.uniq(_.pluck(movements, 'category')), function(category) {
+    var categories = _.uniq(_.pluck(movements, 'category')).filter((category) => {
       return !category || category._id !== 'casa';
     });
     categories = categories.map(function(category, index) {
@@ -87,16 +87,14 @@ class OutgoingByCategoryByMonthStatistic {
         _id: category ? category._id : null,
         name: category ? category.name : 'Non assegnata',
         data: months.map(() => 0),
-        total: _.reduce(_.where(movements, {category: category}), function(sum, movement) {
-          return sum - movement.amount;
-        }, 0)
+        total: _.where(movements, {category: category}).reduce((sum, movement) => sum - movement.amount, 0)
       }
     });
     categories = _.sortBy(categories, 'total');
 
     categories.forEach(function(category, index) {
       category.color = COLORS[(categories.length - index - 1) % COLORS.length];
-      var catMovements = _.filter(movements, function(movement) {
+      var catMovements = movements.filter((movement) => {
         return (!movement.category && category._id == null)
           || (movement.category && movement.category._id === category._id);
       });

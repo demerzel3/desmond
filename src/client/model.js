@@ -244,7 +244,7 @@ class MovementsRepository {
       movements = [movements];
     }
     var movementsEndpoint = this.movementsEndpoint;
-    var promises = _.map(movements, function(movement) {
+    var promises = movements.map((movement) => {
       return movementsEndpoint.post(movement);
     });
     return this.$q.all(promises).then((results) => {
@@ -267,9 +267,7 @@ class MovementsRepository {
   remove(movement) {
     movement.deleted = true;
     return movement.save().then(() => {
-      this.all = _.filter(this.all, (mv) => {
-        return (mv !== movement);
-      });
+      this.all = this.all.filter((mv) => (mv !== movement));
     });
   }
 
@@ -291,6 +289,18 @@ class MovementsRepository {
       this.all.splice(index, 1, newMovement);
       this.all = [].concat(this.all);
       return newMovement;
+    });
+  }
+
+  /**
+   * Returns a list of movements with unassigned category
+   */
+  findOutgoingUnassignedCategory() {
+    return this.all.filter((movement) => {
+      return movement.direction === 'out'
+        && !movement.replaceHandler
+        && (!movement.destination || 'bank_account' !== movement.destination.type)
+        && movement.category === null;
     });
   }
 }
@@ -362,7 +372,7 @@ Model.run(['$injector', '$timeout', '$q', 'Restangular', 'DocumentsRepository', 
       }
       // originatedFrom is an array of reference to deleted movements, must be loaded independently
       if (movement.originatedFrom) {
-        $q.all(_.map(movement.originatedFrom, (movementId) => {
+        $q.all(movement.originatedFrom.map((movementId) => {
           return Restangular.one('movements', movementId).get();
         })).then((linkedMovements) => {
           movement.originatedFrom = linkedMovements;

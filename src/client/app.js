@@ -12,6 +12,7 @@ import SidebarController from 'controller/sidebar_controller.js';
 import EditModalController from 'controller/edit_modal_controller.js';
 import ImportModalController from 'controller/import_modal_controller.js';
 import MonthController from 'controller/month_controller.js';
+import UnassignedController from 'controller/unassigned_controller.js';
 
 var Desmond = angular.module('Desmond', [
   'ngSanitize',
@@ -23,9 +24,7 @@ var Desmond = angular.module('Desmond', [
 
 Desmond.filter('total', () => {
   return (movements) => {
-    return _.reduce(movements, (total, movement) => {
-      return total + movement.amount;
-    }, 0.0);
+    return movements.reduce((total, movement) => total + movement.amount, 0.0);
   }
 });
 
@@ -49,7 +48,7 @@ Desmond.run(['Restangular', 'RuntimeConfiguration', (Restangular, RuntimeConfigu
       // remove all underscored fields from the element
       element = angular.copy(element);
       headers['If-Match'] = element._etag;
-      _.forEach(element, function(value, key) {
+      Object.keys(element).forEach((key) => {
         if (key[0] === '_') {
           delete element[key];
         }
@@ -96,5 +95,6 @@ Desmond.controller('SidebarController', SidebarController);
 Desmond.controller('EditModalController', EditModalController);
 Desmond.controller('ImportModalController', ImportModalController);
 Desmond.controller('MonthController', MonthController);
+Desmond.controller('UnassignedController', UnassignedController);
 
 export default Desmond;

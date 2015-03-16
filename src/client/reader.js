@@ -23,7 +23,8 @@ class StringArrayConsumer {
     // match the record pattern
     var matching = 0;
     var matchIndex = -1;
-    _.each(this.data, (string, index) => {
+    for (let index = 0; index < this.data.length; index++) {
+      let string = this.data[index];
       if (string.match(recordPattern[matching])) {
         matching++;
       } else {
@@ -31,16 +32,16 @@ class StringArrayConsumer {
       }
       if (matching === recordPattern.length) {
         matchIndex = index - recordPattern.length + 1;
-        return false;
+        break;
       }
-    });
+    }
 
     if (matchIndex == -1) {
       return null;
     }
 
     this.data.splice(0, matchIndex);
-    var record = _.map(this.data.splice(0, recordPattern.length), (string) => {
+    var record = this.data.splice(0, recordPattern.length).map((string) => {
       return string.trim();
     });
     //var result = [record];
@@ -53,23 +54,23 @@ class StringArrayConsumer {
       // try to match the continuation pattern
       while (true) {
         var contMatching = 0;
-        _.each(this.data, function (string, index) {
+        for (let string of this.data) {
           var pattern = continuationPattern[contMatching];
           if (!pattern || string.match(pattern)) {
             contMatching++;
           } else {
-            return false;
+            break;
           }
           if (contMatching === continuationPattern.length) {
-            return false;
+            break;
           }
-        });
+        }
         if (contMatching < continuationPattern.length) {
           break;
         }
         // apply continuation
         var continuation = this.data.splice(0, continuationPattern.length);
-        record = _.map(record, function (recordValue, index) {
+        record = record.map((recordValue, index) => {
           var contValue = continuation[index];
           if (!contValue) {
             return recordValue;
@@ -136,7 +137,7 @@ class PDFReader {
         }, (pageErr) => {
           console.error(pageErr);
         }).then((textContent) => {
-          return _.map(textContent.items, (item) => {
+          return textContent.items.map((item) => {
             return item.str;
           });
         }, (err) => {
@@ -147,9 +148,7 @@ class PDFReader {
       return $q.all(promises);
     }).then((pagesStrings) => {
       // strings are arrays of arrays of strings that must be merged into a single array
-      return _.reduce(pagesStrings, (list, pageStrings) => {
-        return list.concat(pageStrings);
-      }, []);
+      return pagesStrings.reduce((list, pageStrings) => list.concat(pageStrings), []);
     });
   }
 }
@@ -271,7 +270,7 @@ class IWBankEstrattoContoReader extends AbstractIWBankReader {
       }
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = record[5];
         movement.date = moment(record[0], 'DD/MM', 'it');
@@ -457,7 +456,7 @@ class IWBankEstrattoContoCartaReader {
       var documentTotal = -parseItalianFloat(dateTotal[2]);
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = null;
         movement.date = moment(record[0], 'DD/MM/YYYY', 'it');
@@ -578,7 +577,7 @@ class IntesaEstrattoContoReader {
       // applies continuation
       apply: (record, accumulator) => {
         consecutiveSpaces = 0;
-        accumulator = _.filter(accumulator, (descr) => {
+        accumulator = accumulator.filter((descr) => {
           return descr.trim().length > 0;
         });
         record[2] = [record[2]].concat(accumulator).join('\n');
@@ -610,7 +609,7 @@ class IntesaEstrattoContoReader {
       }
 
       // convert records to movements
-      var movements = _.map(records, (record) => {
+      var movements = records.map((record) => {
         var movement = new Movement();
         movement.bankId = record[5];
         movement.date = moment(record[0], 'DD.MM.YYYY', 'it');
