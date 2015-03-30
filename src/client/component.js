@@ -1,4 +1,4 @@
-import DesmondMovementsTableFactory from 'component/movements_table.js';
+import DesmondMovementsTableFactory from './component/movements_table';
 
 var Component = angular.module('Desmond.Component', []);
 

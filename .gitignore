@@ -30,3 +30,4 @@ client/js
 client/css
 # intermediate build directory
 build
+src/angular2

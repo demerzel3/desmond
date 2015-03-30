@@ -1,4 +1,4 @@
-import Desmond from 'app.js';
+import Desmond from './app';
 
 Desmond.config(['$stateProvider', '$locationProvider', '$urlRouterProvider',
   function ($stateProvider, $locationProvider, $urlRouterProvider) {
@@ -39,3 +39,5 @@ Desmond.config(['$stateProvider', '$locationProvider', '$urlRouterProvider',
     ;
   }
 ]);
+
+angular.bootstrap(document, ['Desmond']);

@@ -1,18 +1,19 @@
-import 'configuration.js';
-import 'service.js';
-import 'model.js';
-import 'reader.js';
-import 'rules.js';
-import 'component.js';
+import {Component, View, bootstrap} from '../angular2/angular2';
+import './configuration';
+import './service';
+import './model';
+import './reader';
+import './rules';
+import './component';
 
-import HomeController from 'controller/home_controller.js';
-import MetaController from 'controller/meta_controller.js';
-import DropController from 'controller/drop_controller.js';
-import SidebarController from 'controller/sidebar_controller.js';
-import EditModalController from 'controller/edit_modal_controller.js';
-import ImportModalController from 'controller/import_modal_controller.js';
-import MonthController from 'controller/month_controller.js';
-import UnassignedController from 'controller/unassigned_controller.js';
+import HomeController from './controller/home_controller';
+import MetaController from './controller/meta_controller';
+import DropController from './controller/drop_controller';
+import SidebarController from './controller/sidebar_controller';
+import EditModalController from './controller/edit_modal_controller';
+import ImportModalController from './controller/import_modal_controller';
+import MonthController from './controller/month_controller';
+import UnassignedController from './controller/unassigned_controller';
 
 var Desmond = angular.module('Desmond', [
   'ngSanitize',
@@ -98,3 +99,19 @@ Desmond.controller('MonthController', MonthController);
 Desmond.controller('UnassignedController', UnassignedController);
 
 export default Desmond;
+
+class TestComponent {
+  constructor() {
+    this.n = 0;
+  }
+
+  test() {
+    console.log('Angular2 is running and working great.. WOW!!');
+    this.n++;
+  }
+}
+TestComponent.annotations = [
+  new Component({selector: 'testing'}),
+  new View({template: '<h1><a class="btn btn-default" (click)="test()">Test {{n}}</a></h1>'})
+];
+bootstrap(TestComponent);

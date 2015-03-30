@@ -1,4 +1,4 @@
-import Statistics from 'service/statistics.js';
+import Statistics from './service/statistics';
 
 /**
  * @param name

@@ -43,6 +43,11 @@
     "javascript-detect-element-resize": "~0.5.3",
     "traceur-runtime": "~0.0.84",
     "almond": "~0.3.0",
-    "angular-elastic": "~2.4.2"
+    "angular-elastic": "~2.4.2",
+    "requirejs": "~2.1.16",
+    "es6-module-loader": "~0.16.1",
+    "system.js": "~0.16.6",
+    "rxjs": "~2.5.2",
+    "zone": "~0.4.3"
   }
 }

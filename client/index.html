@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="Desmond">
+<html>
 <head lang="en" ng-controller="MetaController as ctrl">
   <base href="/">
   <meta charset="UTF-8">
@@ -11,9 +11,9 @@
   <link href="lib/sweetalert2/dist/sweetalert2.css" rel="stylesheet"/>
   <link href="lib/angular-layout/dist/angular-layout.min.css" rel="stylesheet"/>
   <link href="lib/angular-layout/dist/angular-layout-debug.min.css" rel="stylesheet"/>
-  <link href="css/main.css" rel="stylesheet"/>
+  <link href="build/style/main.css" rel="stylesheet"/>
 </head>
-<body hbox drag-over-screen>
+<body hbox drag-over-screen ng-cloak>
 
   <vbox style="width: 100%; height: 100%" justify="center" align="center" class="drop-screen" ng-controller="DropController as ctrl">
     <hbox>
@@ -55,9 +55,15 @@
     </div>
   </vbox>
 
+  <testing></testing>
+
   <div ui-view grow="1" class="flexbox vbox"></div>
 
-  <script src="lib/traceur-runtime/traceur-runtime.min.js"></script>
+  <script src="lib/es6-module-loader/dist/es6-module-loader.js"></script>
+  <script src="lib/system.js/dist/system.src.js"></script>
+  <script src="lib/zone/zone.js"></script>
+  <!-- <script src="lib/rxjs/dist/rx.all.js"></script> -->
+
   <script src="lib/tinycolor/tinycolor.js"></script>
   <script src="lib/raphael/raphael-min.js"></script>
   <script src="lib/color-thief/dist/color-thief.min.js"></script>
@@ -83,7 +89,16 @@
   <script src="lib/angular-nl2br/angular-nl2br.min.js"></script>
   <script src="lib/angular-elastic/elastic.js"></script>
   <script src="lib/restangular/dist/restangular.min.js"></script>
-  <script src="lib/almond/almond.js"></script>
-  <script src="js/desmond.js"></script>
+
+  <script>
+    System.config({
+      baseURL: 'build'
+    });
+    System.paths['rx/dist/rx.all'] = '/lib/rxjs/dist/rx.all.js';
+
+    System.import('client/routing');
+  </script>
+  <script src="lib/traceur-runtime/traceur-runtime.min.js"></script>
+
 </body>
 </html>
