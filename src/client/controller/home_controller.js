@@ -312,9 +312,10 @@ class HomeController {
     if (refreshStats) {
       this.statistics.refresh();
     }
-    this.buildIncomingBySourceChart();
-    this.buildOutgoingByCategoryChart();
+    //this.buildIncomingBySourceChart();
+    //this.buildOutgoingByCategoryChart();
     this.buildOutgoingByCategoryByMonthChart();
+    this.buildTotalByMonthChart();
   }
 
   /**
@@ -472,6 +473,71 @@ class HomeController {
         }
       },
       series: [].concat(stat.categories).reverse()
+    });
+    $('svg > text:contains("Highcharts.com")').remove();
+  }
+
+  buildTotalByMonthChart() {
+    var stat = this.statistics.totalByMonth;
+
+    $('#totalByMonthChartContainer').highcharts({
+      chart: {
+        type: 'line',
+        marginTop: 30,
+        spacingLeft: 20,
+        marginRight: 20,
+        style: {
+          fontFamily: 'Open Sans',
+          fontWeight: 200
+        }
+      },
+      title: false,
+      xAxis: {
+        categories: stat.months.map((month) => month.label),
+        tickLength: null,
+        lineWidth: 0
+      },
+      yAxis: {
+        min: 0,
+        title: false,
+        labels: {
+          style: {
+            color: '#cccccc'
+          },
+          formatter: function() {
+            if (this.value > 0) {
+              return this.value + ' €';
+            }
+          }
+        },
+        stackLabels: {
+          enabled: true,
+          style: {
+            fontWeight: 200,
+            fontSize: '16px',
+            color: '#333333'
+          },
+          formatter: function() {
+            return this.total.toFixed(2) + ' €';
+          }
+        },
+        gridLineColor: '#eeeeee'
+      },
+      legend: false,
+      tooltip: {
+        shadow: false,
+        borderColor: '#eeeeee',
+        borderWidth: 3,
+        formatter: function() {
+          return this.y.toFixed(2) + ' €<br/>';
+        }
+      },
+      plotOptions: {
+      },
+      series: [{
+        name: 'Totali',
+        data: stat.totals
+      }]
     });
     $('svg > text:contains("Highcharts.com")').remove();
   }
