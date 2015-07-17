@@ -49,9 +49,9 @@ class MonthController {
     });
 
     var movements = this.movements.all.filter((movement) => {
-      return movement.direction === 'out'
+      return movement.date.format('YYYY-MM') === ctrl.month; /*movement.direction === 'out'
         && movement.date.format('YYYY-MM') === ctrl.month
-        && (!movement.destination || 'bank_account' !== movement.destination.type);
+        && (!movement.destination || 'bank_account' !== movement.destination.type)*/;
     });
     movements.sort(function(movA, movB) {
       var catA = movA.category ? movA.category._id : null;
