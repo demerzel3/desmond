@@ -79,7 +79,7 @@ class Movement {
 Movement.DIRECTION_IN = 'in';
 Movement.DIRECTION_OUT = 'out';
 Movement.ORIGINATED_BY_MERGE = 'merge';
-
+Movement.ORIGINATED_BY_INVERSION = 'inversion';
 
 class CategoriesRepository {
   constructor($timeout, Restangular, RuntimeConfiguration) {
@@ -302,6 +302,34 @@ class MovementsRepository {
         && (!movement.destination || 'bank_account' !== movement.destination.type)
         && movement.category === null;
     });
+  }
+
+  /**
+   * Create a Movement equivalent to the current one but with inverted direction and amount.
+   * @return {Movement}
+   */
+  createInverse(source) {
+    let inverse = new Movement();
+    inverse.date = source.date;
+    inverse.executionDate = source.executionDate;
+    inverse.bankId = source.bankId;
+    inverse.description = 'Inverso di: \n' + source.description;
+    inverse.amount = -source.amount;
+    if (source.direction === Movement.DIRECTION_IN) {
+      inverse.direction = Movement.DIRECTION_OUT;
+      inverse.account = source.source;
+      inverse.destination = source.account;
+    } else {
+      inverse.direction = Movement.DIRECTION_IN;
+      inverse.account = source.destination;
+      inverse.source = source.account;
+    }
+    inverse.category = source.category;
+
+    inverse.originatedBy = Movement.ORIGINATED_BY_INVERSION;
+    inverse.originatedFrom = [source];
+
+    return inverse;
   }
 }
 MovementsRepository.$inject = ['$q', 'Restangular', 'DocumentsRepository', 'CategoriesRepository', 'AccountsRepository'];

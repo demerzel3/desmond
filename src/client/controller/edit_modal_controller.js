@@ -16,6 +16,8 @@ class EditModalController {
     } else if (movement.originatedBy) {
       if ('merge' === movement.originatedBy) {
         this.title = 'Unisci movimenti';
+      } else if ('inversion' === movement.originatedBy) {
+        this.title = 'Movimento inverso'
       }
     } else {
       this.title = 'Nuovo movimento';

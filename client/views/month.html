@@ -26,6 +26,9 @@
           <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length < 2" ng-click="ctrl.mergeSelected()">
             <i class="md md-call-merge md-lg"></i> Unisci
           </button>
+          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length > 1" ng-click="ctrl.createInverseOfSelected()">
+            <i class="md md-swap-horiz md-lg"></i> Crea Inverso
+          </button>
           <button class="btn btn-default" ng-click="ctrl.deleteSelected()">
             <i class="md md-delete md-lg"></i> Elimina
           </button>

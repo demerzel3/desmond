@@ -1,7 +1,8 @@
 class MonthController {
-  constructor($stateParams, $scope, $timeout, $modal, MovementsRepository, Statistics, Restangular) {
+  constructor($stateParams, $scope, $timeout, $modal, MovementsRepository, Statistics, Restangular, Movement) {
     this.$timeout = $timeout;
     this.$modal = $modal;
+    this.Movement = Movement;
     this.Restangular = Restangular;
     this.month = $stateParams.month;
     this.stat = Statistics.outgoingByCategoryByMonth;
@@ -186,6 +187,24 @@ class MonthController {
     }
   }
 
+  createInverseOfSelected() {
+    let Movement = this.Movement;
+    let selected = this.selectedItems[0];
+
+    if ((selected.direction === Movement.DIRECTION_IN && !selected.source)
+        || (selected.direction === Movement.DIRECTION_OUT && !selected.destination)) {
+      swal({
+        title: 'Seleziona un movimento che abbia una sorgente o una destinazione per invertirlo.',
+        type: 'warning'
+      });
+
+      return;
+    }
+
+    let inverse = this.movements.createInverse(selected);
+    this.editMovement(inverse);
+  }
+
   deleteSelected(message) {
     message = message || 'Eliminare i movimenti selezionati?';
     swal({
@@ -322,7 +341,7 @@ class MonthController {
       if (isNew) {
         // argh...
         return this.movements.add(editedMovement).then(() => {
-          if (editedMovement.originatedFrom) {
+          if (editedMovement.originatedBy === 'merge' && editedMovement.originatedFrom) {
             for (let originalMovement of editedMovement.originatedFrom) {
               this.movements.remove(originalMovement);
             }
@@ -335,6 +354,6 @@ class MonthController {
   }
 
 }
-MonthController.$inject = ['$stateParams', '$scope', '$timeout', '$modal', 'MovementsRepository', 'Statistics', 'Restangular'];
+MonthController.$inject = ['$stateParams', '$scope', '$timeout', '$modal', 'MovementsRepository', 'Statistics', 'Restangular', 'Movement'];
 
 export default MonthController;
