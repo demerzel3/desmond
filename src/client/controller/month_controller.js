@@ -1,6 +1,8 @@
 class MonthController {
-  constructor($stateParams, $scope, $timeout, MovementsRepository, Statistics) {
+  constructor($stateParams, $scope, $timeout, $modal, MovementsRepository, Statistics, Restangular) {
     this.$timeout = $timeout;
+    this.$modal = $modal;
+    this.Restangular = Restangular;
     this.month = $stateParams.month;
     this.stat = Statistics.outgoingByCategoryByMonth;
 
@@ -175,7 +177,77 @@ class MonthController {
     $('.main-box').on('scroll', updateFunnel);
     $(window).resize(_.debounce(updateFunnel, 250));
   }
+
+  /**
+   * Copied from HomeController.
+   *
+   * @param movement
+   * @returns {*}
+   */
+  editMovement(movement) {
+    var Restangular = this.Restangular;
+    var isNew = !movement._id;
+    var modal = this.$modal.open({
+      templateUrl: 'components/edit_modal.html',
+      controller: 'EditModalController as ctrl',
+      size: 'lg',
+      windowClass: ['edit-modal'],
+      backdrop: 'static',
+      resolve: {
+        movement: () => {
+          // copy the angular movement, mantaining the references to other objects
+          // TODO: move this into the Movement model class?
+          let copy = null;
+          const LINK_FIELDS = [
+            'document', 'account', 'category', 'source',
+            'sourceMovement', 'destination', 'destinationMovement',
+            'originatedFrom'];
+
+          var savedFields = {};
+          for (let fieldName of LINK_FIELDS) {
+            savedFields[fieldName] = movement[fieldName];
+            movement[fieldName] = null;
+          }
+          if (isNew) {
+            copy = angular.copy(movement);
+          } else {
+            copy = Restangular.copy(movement);
+          }
+          for (let fieldName of LINK_FIELDS) {
+            copy[fieldName] = savedFields[fieldName];
+            movement[fieldName] = savedFields[fieldName];
+          }
+          return copy;
+        }
+      }
+    });
+
+    return modal.result.then((editedMovement) => {
+      if (editedMovement.category && editedMovement.category._isNew) {
+        return this.categories.add(editedMovement.category).then(function(newCategory) {
+          editedMovement.category = newCategory;
+          return editedMovement;
+        });
+      } else {
+        return editedMovement;
+      }
+    }).then((editedMovement) => {
+      if (isNew) {
+        // argh...
+        return this.movements.add(editedMovement).then(() => {
+          if (editedMovement.originatedFrom) {
+            for (let originalMovement of editedMovement.originatedFrom) {
+              this.movements.remove(originalMovement);
+            }
+          }
+        });
+      } else {
+        return this.movements.save(editedMovement);
+      }
+    });
+  }
+
 }
-MonthController.$inject = ['$stateParams', '$scope', '$timeout', 'MovementsRepository', 'Statistics'];
+MonthController.$inject = ['$stateParams', '$scope', '$timeout', '$modal', 'MovementsRepository', 'Statistics', 'Restangular'];
 
 export default MonthController;
