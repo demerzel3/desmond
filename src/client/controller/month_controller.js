@@ -15,13 +15,12 @@ class MonthController {
       this.initData();
     }
 
-    var ctrl = this;
-    $scope.$watch('ctrl.movements.all', function(movements, oldValue) {
+    $scope.$watch('ctrl.movements.all', (movements, oldValue) => {
       if (movements === oldValue) {
         return;
       }
-      ctrl.stat.refresh();
-      ctrl.initData();
+      this.stat.refresh();
+      this.initData();
     });
   }
 
