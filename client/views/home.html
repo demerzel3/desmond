@@ -116,25 +116,6 @@
     </div>
 
     <vbox grow="1" class="main-box">
-      <div class="panel panel-selection" ng-show="ctrl.selectedItems.length > 0" ui-scrollfix>
-        <div class="panel-body" hbox gap="15">
-          <a href ng-click="ctrl.toggleAllSelection()">
-            <i class="md md-lg"
-               ng-class="{'md-check': ctrl.selectedItems.length < ctrl.filteredMovements.length, 'md-check-box': ctrl.selectedItems.length == ctrl.filteredMovements.length}"></i>
-          </a>
-          <span>{{ctrl.selectedItems.length}} Selezionati</span>
-          <button class="btn btn-default" ng-disabled="ctrl.selectedItems.length < 2" ng-click="ctrl.mergeSelected()">
-            <i class="md md-call-merge md-lg"></i> Unisci
-          </button>
-          <button class="btn btn-default" ng-click="ctrl.deleteSelected()">
-            <i class="md md-delete md-lg"></i> Elimina
-          </button>
-          <div grow="1" class="text-right">
-            <a href ng-click="ctrl.selectedItems = []"><i class="md md-close md-lg"></i></a>
-          </div>
-        </div>
-      </div>
-
       <desmond-movements-table movements="ctrl.filteredMovements"
                                selected-items="ctrl.selectedItems"
                                replace-movement-enabled="true"

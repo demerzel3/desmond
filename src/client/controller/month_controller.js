@@ -10,6 +10,7 @@ class MonthController {
     this.filteredMovements = [];
     this.categories = [];
     this.total = 0;
+    this.selectedItems = [];
 
     if (this.movements.all.length > 0) {
       this.initData();
@@ -177,12 +178,99 @@ class MonthController {
     $(window).resize(_.debounce(updateFunnel, 250));
   }
 
-  /**
-   * Copied from HomeController.
-   *
-   * @param movement
-   * @returns {*}
-   */
+  toggleAllSelection() {
+    if (this.selectedItems.length < this.filteredMovements.length) {
+      this.selectedItems = [].concat(this.filteredMovements);
+    } else {
+      this.selectedItems = [];
+    }
+  }
+
+  deleteSelected(message) {
+    message = message || 'Eliminare i movimenti selezionati?';
+    swal({
+      title: message,
+      type: 'warning',
+      allowOutsideClick: true,
+      showCancelButton: true,
+      confirmButtonColor: '#DD6B55',
+      confirmButtonText: 'Elimina ' + this.selectedItems.length + ' movimenti',
+      cancelButtonText: 'Annulla'
+    }, (isConfirm) => {
+      if (isConfirm) {
+        for (let movement of this.selectedItems) {
+          this.movements.remove(movement);
+        }
+      }
+    });
+  }
+
+  mergeSelected() {
+    // can only be from the same account
+    if (_.uniq(_.pluck(this.selectedItems, 'account')).length > 1) {
+      sweetAlert('Oops..', 'Non puoi unire movimenti di conti diversi, seleziona solo movimenti dello stesso conto.');
+      return;
+    }
+
+    // build a new movement from the selected ones
+    var amount = this.selectedItems.reduce((total, movement) => total + movement.amount, 0);
+    if (amount.toFixed(2) === '0.00') {
+      return this.deleteSelected('L\'unione degli elementi selezionati dà somma 0, vuoi eliminarli invece di unirli?');
+    }
+
+    var Movement = this.Movement;
+    var newMovement = new Movement();
+    newMovement.date = this.selectedItems[0].date;
+    newMovement.executionDate = this.selectedItems[0].executionDate;
+    newMovement.amount = amount;
+    newMovement.direction = (amount > 0) ? Movement.DIRECTION_IN : Movement.DIRECTION_OUT;
+    newMovement.account = this.selectedItems[0].account;
+    newMovement.originatedBy = Movement.ORIGINATED_BY_MERGE;
+    newMovement.originatedFrom = [].concat(this.selectedItems);
+    newMovement.description = _.pluck(this.selectedItems, 'description').join('\n\n');
+    newMovement.category = this.selectedItems.reduce(function(cat, movement) {
+      if (!movement.category) {
+        return cat;
+      }
+      if (_.isUndefined(cat)) {
+        return movement.category;
+      } else if (cat === movement.category) {
+        return cat;
+      } else {
+        return null;
+      }
+    }, undefined);
+    if (Movement.DIRECTION_IN === newMovement.direction) {
+      newMovement.source = this.selectedItems.reduce((result, movement) => {
+        if (!movement.source) {
+          return result;
+        }
+        if (_.isUndefined(result)) {
+          return movement.source;
+        } else if (result === movement.source) {
+          return result;
+        } else {
+          return null;
+        }
+      }, undefined);
+    } else {
+      newMovement.destination = this.selectedItems.reduce((result, movement) => {
+        if (!movement.destination) {
+          return result;
+        }
+        if (_.isUndefined(result)) {
+          return movement.destination;
+        } else if (result === movement.destination) {
+          return result;
+        } else {
+          return null;
+        }
+      }, undefined);
+    }
+
+    this.editMovement(newMovement);
+  }
+
   editMovement(movement) {
     var Restangular = this.Restangular;
     var isNew = !movement._id;
