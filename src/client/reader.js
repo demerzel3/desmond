@@ -542,7 +542,7 @@ IWPowerListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
 
 
 /**
- * Reads an Estratto Conto (PDF) of IWBank into a list of movements
+ * Reads an Estratto Conto (PDF) of Intesa Sanpaolo into a list of movements
  */
 class IntesaEstrattoContoReader {
   constructor(PDFReader, Movement, Document) {
