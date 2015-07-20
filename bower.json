@@ -31,7 +31,7 @@
     "restangular": "~1.4.0",
     "ng-file-upload": "~2.0.5",
     "pdfjs-bower": "~1.0.233",
-    "js-xls": "~0.7.2",
+    "js-xlsx": "~0.8.0",
     "spark-md5": "~0.0.5",
     "sweetalert2": "~0.1.2",
     "color-thief": "*",

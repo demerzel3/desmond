@@ -20,7 +20,7 @@
       <div ng-file-drop ng-repeat="account in ctrl.accounts.bankAccounts" class="drop-box drop-box-account"
            drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
            ng-file-change="ctrl.importFiles(account, $files)"
-           multiple="true" allow-dir="false" accept="*.xls,application/pdf">
+           multiple="true" allow-dir="false" accept="*.xls,*.xlsx,application/pdf">
         <img ng-src="{{account.avatarUrl}}" class="account" width="128" height="128" alt="{{account.description}}"/><br/>
         {{account.name}}
       </div>
@@ -71,7 +71,7 @@
   <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="lib/lodash/lodash.min.js"></script>
   <script src="lib/pdfjs-bower/dist/pdf.js"></script>
-  <script src="lib/js-xls/dist/xls.full.min.js"></script>
+  <script src="lib/js-xlsx/dist/xlsx.full.min.js"></script>
   <script src="lib/papaparse/papaparse.min.js"></script>
   <script src="lib/angular/angular.min.js"></script>
   <script src="lib/angular-sanitize/angular-sanitize.min.js"></script>
