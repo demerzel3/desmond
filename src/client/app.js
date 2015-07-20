@@ -28,14 +28,6 @@ Desmond.filter('total', () => {
   }
 });
 
-// leverage angular $parse to replace the too simplistic templating engine of Charts.js
-Desmond.run(['$parse', function($parse) {
-  Chart.helpers.template = function(tpl, data) {
-    var getter = $parse(tpl);
-    return getter(data);
-  };
-}]);
-
 Desmond.run(['Restangular', 'RuntimeConfiguration', (Restangular, RuntimeConfiguration) => {
 
   RuntimeConfiguration.get().then((config) => {
