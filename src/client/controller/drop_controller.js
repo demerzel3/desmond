@@ -47,6 +47,12 @@ class DropController {
         } else {
           // TODO: add xls import for Intesa
         }
+      } else if ('widiba' === account.bank) {
+        if (file.type === 'application/pdf') {
+          // TODO: add pdf import for Widiba
+        } else {
+          this.importFile(account, file, 'WidibaListaMovimentiReader');
+        }
       }
     }
   }

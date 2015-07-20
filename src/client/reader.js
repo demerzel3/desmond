@@ -5,6 +5,31 @@ let parseItalianFloat = (value) => {
   return parseFloat(value);
 };
 
+/**
+ * From http://stackoverflow.com/questions/16229494/converting-excel-date-serial-number-to-date-using-javascript
+ *
+ * @param serial
+ * @returns {Date}
+ */
+let excelDateToJSDate = (serial) => {
+   var utc_days  = Math.floor(serial - 25569);
+   var utc_value = utc_days * 86400;
+   var date_info = new Date(utc_value * 1000);
+
+   var fractional_day = serial - Math.floor(serial) + 0.0000001;
+
+   var total_seconds = Math.floor(86400 * fractional_day);
+
+   var seconds = total_seconds % 60;
+
+   total_seconds -= seconds;
+
+   var hours = Math.floor(total_seconds / (60 * 60));
+   var minutes = Math.floor(total_seconds / 60) % 60;
+
+   return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+};
+
 class StringArrayConsumer {
   constructor(input) {
     // make a copy of the input, since it will be "consumed"
@@ -636,6 +661,59 @@ IntesaEstrattoContoReader.RECORD_PATTERN = [
 ];
 
 
+class WidibaListaMovimentiReader {
+  constructor(ExcelReader, Movement, Document) {
+    this.ExcelReader = ExcelReader;
+    this.Movement = Movement;
+    this.Document = Document;
+  }
+
+  read(file) {
+    var Movement = this.Movement;
+    var Document = this.Document;
+    return this.ExcelReader.getFirstSheet(file).then((rows) => {
+      var reading = false;
+      let document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_WIDIBA);
+      let DATE_REGEX = /^Da: ([0-9]{2}\/[0-9]{2}\/[0-9]{4}) - A: ([0-9]{2}\/[0-9]{2}\/[0-9]{4})$/;
+
+      for (let row of rows) {
+        if (row.length < 6) {
+          continue;
+        }
+        if (!row[0] || row[0].trim().length == 0) {
+          continue;
+        }
+        if (row[0] === 'IBAN') {
+          let match = row[5].match(DATE_REGEX);
+          document.date = moment(match[1], 'DD/MM/YYYY', 'it');
+        }
+        if (!reading
+          && angular.equals(row, [
+            "DATA CONT.", "DATA VAL.", "CAUSALE", "DESCRIZIONE", "", "IMPORTO(€)"])) {
+          reading = true;
+          continue;
+        }
+        if (!reading) {
+          continue;
+        }
+
+        // read a record into a movement
+        var movement = new Movement();
+        movement.document = document;
+        movement.bankId = null;
+        movement.date = moment(excelDateToJSDate(row[0]));
+        movement.executionDate = moment(excelDateToJSDate(row[1]));
+        movement.description = row[2] + '\n' + row[3];
+        movement.amount = parseFloat(row[5]);
+        movement.direction = (movement.amount <= 0) ? Movement.DIRECTION_OUT : Movement.DIRECTION_IN;
+        document.movements.push(movement);
+      }
+      return document;
+    });
+  }
+}
+WidibaListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
+
 
 var Reader = angular.module('Desmond.Reader', []);
 Reader.service('PDFReader', PDFReader);
@@ -645,6 +723,7 @@ Reader.service('IWBankListaMovimentiReader', IWBankListaMovimentiReader);
 Reader.service('IWPowerListaMovimentiReader', IWPowerListaMovimentiReader);
 Reader.service('BNLListaMovimentiReader', BNLListaMovimentiReader);
 Reader.service('IntesaEstrattoContoReader', IntesaEstrattoContoReader);
+Reader.service('WidibaListaMovimentiReader', WidibaListaMovimentiReader);
 
 Reader.service('IWBankCartaReplaceHandler', IWBankCartaReplaceHandler);
 Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
