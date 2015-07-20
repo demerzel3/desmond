@@ -242,7 +242,8 @@ class AbstractIWBankReader {
   }
 
   applyReplaceHandler(movement) {
-    if (movement.description.indexOf('ADDEBITO ACQUISTI EFFETTUATI CON CARTA DI CREDITO') > -1) {
+    if (movement.description.indexOf('ADDEBITO ACQUISTI EFFETTUATI CON CARTA DI CREDITO') > -1
+      || movement.description.indexOf('ADD. CARTA UBI BANCA') > -1) {
       // this movement is replaceable with more detailed ones, loadable from another file
       movement.replaceHandler = this.IWBankCartaReplaceHandler;
       return true;
@@ -438,8 +439,33 @@ class BNLListaMovimentiReader {
 BNLListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
 
 
-
+/**
+ * Versioned reader for IWBank card.
+ */
 class IWBankEstrattoContoCartaReader {
+  constructor(ReaderV1, ReaderV2) {
+    this.readers = [ReaderV2, ReaderV1];
+  }
+
+  read(file) {
+    var lastError = null;
+    for (let reader of this.readers) {
+      try {
+        return reader.read(file);
+      } catch (e) {
+        // Save the last error while trying with the next reader.
+        lastError = e;
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+  }
+}
+IWBankEstrattoContoCartaReader.$inject = ['IWBankEstrattoContoCartaReaderV1', 'IWBankEstrattoContoCartaReaderV2'];
+
+class IWBankEstrattoContoCartaReaderV2 {
   constructor(PDFReader, Movement, Document) {
     this.PDFReader = PDFReader;
     this.Movement = Movement;
@@ -452,7 +478,86 @@ class IWBankEstrattoContoCartaReader {
    * @returns {Promise|*}
    */
   read(file) {
-    var self = IWBankEstrattoContoCartaReader;
+    var self = IWBankEstrattoContoCartaReaderV2;
+    var Movement = this.Movement;
+    var Document = this.Document;
+
+    return this.PDFReader.toStringArray(file).then((strings) => {
+      var consumer = new StringArrayConsumer(strings);
+      console.log(strings);
+
+      var dateMatch = consumer.readRecord(self.DATE_PATTERN);
+      if (!dateMatch) {
+        throw new Error('Unable to find the date pattern');
+      }
+
+      if (!consumer.readRecord(self.TABLE_START_PATTERN)) {
+        throw new Error('Unable to find the start pattern');
+      }
+
+      var records = [];
+      var record = consumer.readRecord(self.RECORD_PATTERN);
+      while (record != null) {
+        records.push(record);
+        //console.log(record);
+        record = consumer.readRecord(self.RECORD_PATTERN);
+      }
+
+      // read document date and total
+      var totalMatch = consumer.readRecord(self.TOTAL_PATTERN);
+      if (!totalMatch) {
+        throw new Error('Unable to find the total pattern');
+      }
+      var documentDate = moment(dateMatch[2], 'DD.MM.YYYY', 'it');
+      var documentTotal = -parseItalianFloat(totalMatch[1]);
+
+      // convert records to movements
+      var movements = records.map((record) => {
+        var movement = new Movement();
+        movement.bankId = record[0];
+        movement.date = moment(record[1], 'DD/MM/YYYY', 'it');
+        movement.executionDate = moment(record[2], 'DD/MM/YYYY', 'it');
+        movement.description = 'ACQUISTO CARTA DI CREDITO\n'+record[3];
+        movement.direction = Movement.DIRECTION_OUT;
+        movement.amount = -parseItalianFloat(record[4]);
+        return movement;
+      });
+      return new Document(file, Document.TYPE_ESTRATTO_CONTO_CARTA_IW, documentDate, documentTotal, movements);
+    });
+  }
+}
+IWBankEstrattoContoCartaReaderV2.$inject = ['PDFReader', 'Movement', 'Document'];
+IWBankEstrattoContoCartaReaderV2.DATE_PATTERN = ["Data di addebito sul conto", "corrente:", /^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$/];
+IWBankEstrattoContoCartaReaderV2.TOTAL_PATTERN = ["SALDO ATTUALE A VS. DEBITO", /^[0-9\.,]+$/]
+IWBankEstrattoContoCartaReaderV2.TABLE_START_PATTERN = [
+  "CODICE RIFERIMENTO",
+  "DATA", "OPERAZIONE",
+  "DATA", "REGISTRAZIONE",
+  "DESCRIZIONE DELLE OPERAZIONI",
+  "IMPORTO IN EURO"
+];
+IWBankEstrattoContoCartaReaderV2.RECORD_PATTERN = [
+  /^[0-9 ]*$/, // codice riferimento (numbers and spaces)
+  /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data operazione
+  /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data registrazione
+  /\S+/, // descrizione
+  /^[0-9\.,\s]+$/  // importo in euro
+];
+
+class IWBankEstrattoContoCartaReaderV1 {
+  constructor(PDFReader, Movement, Document) {
+    this.PDFReader = PDFReader;
+    this.Movement = Movement;
+    this.Document = Document;
+  }
+
+  /**
+   *
+   * @param file
+   * @returns {Promise|*}
+   */
+  read(file) {
+    var self = IWBankEstrattoContoCartaReaderV1;
     var Movement = this.Movement;
     var Document = this.Document;
 
@@ -495,16 +600,16 @@ class IWBankEstrattoContoCartaReader {
     });
   }
 }
-IWBankEstrattoContoCartaReader.$inject = ['PDFReader', 'Movement', 'Document'];
-IWBankEstrattoContoCartaReader.DATE_TOTAL_PATTERN = [/Addebito in conto corrente il ([0-9]{2}\/[0-9]{2}\/[0-9]{4})/, '(c)', /^[0-9\.,]+$/]
-IWBankEstrattoContoCartaReader.TABLE_START_PATTERN = [
+IWBankEstrattoContoCartaReaderV1.$inject = ['PDFReader', 'Movement', 'Document'];
+IWBankEstrattoContoCartaReaderV1.DATE_TOTAL_PATTERN = [/Addebito in conto corrente il ([0-9]{2}\/[0-9]{2}\/[0-9]{4})/, '(c)', /^[0-9\.,]+$/]
+IWBankEstrattoContoCartaReaderV1.TABLE_START_PATTERN = [
   "Data operazione",
   "Data registrazione",
   "Descrizione",
   "Importo in Euro",
   "Importo valuta originale"
 ];
-IWBankEstrattoContoCartaReader.RECORD_PATTERN = [
+IWBankEstrattoContoCartaReaderV1.RECORD_PATTERN = [
   /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data operazione
   /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/, // data registrazione
   /\S+/, // descrizione
@@ -726,4 +831,6 @@ Reader.service('IntesaEstrattoContoReader', IntesaEstrattoContoReader);
 Reader.service('WidibaListaMovimentiReader', WidibaListaMovimentiReader);
 
 Reader.service('IWBankCartaReplaceHandler', IWBankCartaReplaceHandler);
+Reader.service('IWBankEstrattoContoCartaReaderV1', IWBankEstrattoContoCartaReaderV1);
+Reader.service('IWBankEstrattoContoCartaReaderV2', IWBankEstrattoContoCartaReaderV2);
 Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
