@@ -201,10 +201,35 @@ class ExcelReader {
       reader.readAsBinaryString(file);
     });
 
-    return readData.then((binaryData) => {
-      var workbook = XLS.read(binaryData, {type: 'binary'});
-      return Papa.parse(XLS.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]])).data;
+    return readData.then(binaryData => {
+      let workbook = XLS.read(binaryData, {type: 'binary'});
+      let sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      // Extend reference range to capture all filled cells.
+      let range = sheet['!ref'].match(/([A-Z]+)[0-9]+:[A-Z]+([0-9]+)/);
+      let firstColumn = range[1];
+      var lastRow = range[2];
+      while (sheet[firstColumn + '' + lastRow]) {
+        lastRow++;
+      }
+      sheet['!ref'] = sheet['!ref'].replace(/([A-Z]+[0-9]+:[A-Z]+)[0-9]+/, '$1') + lastRow;
+
+      return this._sheetToJson(sheet);
     });
+  }
+
+  _sheetToJson(sheet) {
+    let range = XLSX.utils.decode_range(sheet['!ref']);
+    let result = [];
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      let rowData = [];
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        rowData.push(XLSX.utils.format_cell(sheet[XLSX.utils.encode_cell({r: row, c: col})]));
+      }
+      result.push(rowData);
+    }
+    console.log(range);
+    return result;
   }
 }
 ExcelReader.$inject = ['$q'];
