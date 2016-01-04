@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import BaseHTTPServer
 import os.path
 from mimetypes import MimeTypes
