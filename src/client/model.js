@@ -52,6 +52,7 @@ Document.TYPE_LISTA_MOVIMENTI_BNL = 'ListaMovimentiBNL';
 Document.TYPE_LISTA_MOVIMENTI_IWPOWER = 'ListaMovimentiIWPower';
 Document.TYPE_ESTRATTO_CONTO_INTESA = 'EstrattoContoIntesa';
 Document.TYPE_LISTA_MOVIMENTI_WIDIBA = 'ListaMovimentiWidiba';
+Document.TYPE_LISTA_MOVIMENTI_CARTA_WIDIBA = 'ListaMovimentiCartaWidiba';
 
 
 class Movement {

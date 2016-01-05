@@ -206,13 +206,32 @@ class ExcelReader {
       let sheet = workbook.Sheets[workbook.SheetNames[0]];
 
       // Extend reference range to capture all filled cells.
-      let range = sheet['!ref'].match(/([A-Z]+)[0-9]+:[A-Z]+([0-9]+)/);
+      let range = sheet['!ref'].match(/([A-Z]+)[0-9]+:([A-Z]+)([0-9]+)/);
       let firstColumn = range[1];
-      var lastRow = range[2];
+      let lastColumn = range[2];
+      var lastRow = range[3];
+
+      // If on the first column there is nothing, move the pointer to the following.
+      let somethingFound = false;
+      while (!somethingFound && firstColumn !== lastColumn) {
+        for (let i = 1; i <= lastRow; i++) {
+          if (sheet[firstColumn + '' + i]) {
+            console.log('something found at ', firstColumn, i);
+            somethingFound = true;
+            break;
+          }
+        }
+
+        if (!somethingFound) {
+          firstColumn = String.fromCharCode(firstColumn.charCodeAt(0) + 1);
+        }
+      }
+
+      console.log('firstColumn', firstColumn, 'lastRow', lastRow);
       while (sheet[firstColumn + '' + lastRow]) {
         lastRow++;
       }
-      sheet['!ref'] = sheet['!ref'].replace(/([A-Z]+[0-9]+:[A-Z]+)[0-9]+/, '$1') + lastRow;
+      sheet['!ref'] = firstColumn + sheet['!ref'].replace(/[A-Z]+([0-9]+:[A-Z]+)[0-9]+/, '$1') + lastRow;
 
       return this._sheetToJson(sheet);
     });
@@ -253,6 +272,26 @@ class IWBankCartaReplaceHandler {
       console.log(movement.amount, document.total);
       throw new Error('Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che le date e gli importi corrispondano e riprova.');
     }
+  }
+}
+
+class WidibaCartaReplaceHandler {
+  constructor() {
+    this.info = 'Trascina sulla pagina l\'estratto conto della carta di credito per caricare i dettagli';
+    this.accept = 'application/*';
+    this.readerName = 'WidibaListaMovimentiCartaReader';
+  }
+
+  toString() {
+    return 'WidibaCartaReplaceHandler';
+  }
+
+  check(movement, document) {
+    if (movement.amount.toFixed(2) !== document.total.toFixed(2)) {
+      console.log(movement.amount, document.total);
+      throw new Error('Il file non corrisponde alla riga su cui l\'hai trascinato, verifica che gli importi corrispondano e riprova.');
+    }
+    document.date = movement.date;
   }
 }
 
@@ -844,6 +883,69 @@ class WidibaListaMovimentiReader {
 }
 WidibaListaMovimentiReader.$inject = ['ExcelReader', 'Movement', 'Document'];
 
+class WidibaListaMovimentiCartaReader {
+  constructor(ExcelReader, Movement, Document) {
+    this.ExcelReader = ExcelReader;
+    this.Movement = Movement;
+    this.Document = Document;
+  }
+
+  read(file) {
+    var Movement = this.Movement;
+    var Document = this.Document;
+    console.log(file);
+    return this.ExcelReader.getFirstSheet(file).then((rows) => {
+      var reading = false;
+      let document = new Document(file, Document.TYPE_LISTA_MOVIMENTI_CARTA_WIDIBA);
+
+      for (let row of rows) {
+        console.log(row);
+
+        if (row.length < 3) {
+          continue;
+        }
+        if (!row[0] || row[0].trim().length == 0) {
+          continue;
+        }
+        if (!reading
+          && angular.equals(row, ["DATA OP.", "CAUSALE", "", "IMPORTO", "", "", "", "", ""])) {
+          reading = true;
+          continue;
+        }
+        if (!reading) {
+          continue;
+        }
+
+        var date = row[0];
+        if (date.indexOf('/') === -1) {
+          date = moment(excelDateToJSDate(date));
+        } else {
+          date = moment(date, 'MM/DD/YY');
+        }
+
+        // read a record into a movement
+        let movement = new Movement();
+        movement.document = document;
+        movement.bankId = null;
+        movement.date = date;
+        movement.executionDate = date;
+        movement.description = row[1];
+        movement.amount = parseFloat(row[3]);
+        movement.direction = Movement.DIRECTION_OUT;
+        document.movements.push(movement);
+      }
+
+      // Compute the document total, easier than reading from the excel.
+      document.total = document.movements.reduce((total, item) => {
+        return total + item.amount;
+      }, 0);
+
+      console.log('estratto conto carta: ', document);
+      return document;
+    });
+  }
+}
+WidibaListaMovimentiCartaReader.$inject = ['ExcelReader', 'Movement', 'Document'];
 
 var Reader = angular.module('Desmond.Reader', []);
 Reader.service('PDFReader', PDFReader);
@@ -859,3 +961,6 @@ Reader.service('IWBankCartaReplaceHandler', IWBankCartaReplaceHandler);
 Reader.service('IWBankEstrattoContoCartaReaderV1', IWBankEstrattoContoCartaReaderV1);
 Reader.service('IWBankEstrattoContoCartaReaderV2', IWBankEstrattoContoCartaReaderV2);
 Reader.service('IWBankEstrattoContoCartaReader', IWBankEstrattoContoCartaReader);
+
+Reader.service('WidibaCartaReplaceHandler', WidibaCartaReplaceHandler);
+Reader.service('WidibaListaMovimentiCartaReader', WidibaListaMovimentiCartaReader);
